@@ -6,17 +6,13 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CreditCard, Trophy, X, Eye } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import { getUserProfile } from '@/lib/auth'
+import { requireProfile } from '@/lib/auth'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import { CountdownTimer } from '@/components/countdown-timer'
 
 async function MyBidsContent() {
-  const profile = await getUserProfile()
+  const profile = await requireProfile()
   const supabase = createClient()
-
-  if (!profile) {
-    return <div>Profile not found</div>
-  }
 
   // Fetch user's bids with listing information
   const { data: bids, error } = await supabase
