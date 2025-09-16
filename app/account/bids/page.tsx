@@ -12,6 +12,8 @@ import { CountdownTimer } from '@/components/countdown-timer'
 
 async function MyBidsContent() {
   const profile = await requireProfile()
+  if (!profile) return <div>Profile not found</div>
+  
   const supabase = createClient()
 
   // Fetch user's bids with listing information
@@ -31,7 +33,7 @@ async function MyBidsContent() {
         )
       )
     `)
-    .eq('bidder_id', profile.id)
+    .eq('bidder_id', profile!.id)
     .order('created_at', { ascending: false })
 
   if (error) {
