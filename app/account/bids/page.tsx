@@ -33,7 +33,7 @@ async function MyBidsContent() {
         )
       )
     `)
-    .eq('bidder_id', profile!.id)
+    .eq('bidder_id', profile.id)
     .order('created_at', { ascending: false })
 
   if (error) {
