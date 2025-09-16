@@ -16,6 +16,26 @@ async function MyBidsContent() {
   
   const supabase = createClient()
 
+  // Define the type for the joined query result
+  type BidWithListing = {
+    id: number
+    amount: number
+    bidder_id: string
+    listing_id: string
+    created_at: string
+    listings: {
+      id: string
+      title: string
+      status: string
+      current_price: number
+      end_time: string
+      cover_image_url: string | null
+      categories: {
+        name: string
+      } | null
+    }
+  }
+
   // Fetch user's bids with listing information
   const { data: bids, error } = await supabase
     .from('bids')
@@ -34,7 +54,7 @@ async function MyBidsContent() {
       )
     `)
     .eq('bidder_id', profile.id)
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: false }) as { data: BidWithListing[] | null, error: any }
 
   if (error) {
     console.error('Error fetching bids:', error)
