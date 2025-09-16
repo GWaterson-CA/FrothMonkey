@@ -1,4 +1,4 @@
-# FrothMonkey
+# FrothMonkey 🍺
 
 FrothMonkey is a modern, production-ready auction platform built with Next.js 14, Supabase, and TypeScript. Similar to TradeMe, this platform allows users to buy and sell unique items through live auctions with real-time bidding, anti-sniping protection, and comprehensive user management.
 
