@@ -16,7 +16,14 @@ export const getUser = cache(async () => {
   }
 })
 
-export const getUserProfile = cache(async () => {
+export const getUserProfile = cache(async (): Promise<{
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+  is_admin: boolean | null;
+  created_at: string | null;
+} | null> => {
   const user = await getUser()
   if (!user) return null
 
@@ -37,7 +44,14 @@ export const getUserProfile = cache(async () => {
       return null
     }
 
-    return profile
+    return profile as {
+      id: string;
+      username: string | null;
+      full_name: string | null;
+      avatar_url: string | null;
+      is_admin: boolean | null;
+      created_at: string | null;
+    } | null
   } catch (error) {
     console.error('Error:', error)
     return null
