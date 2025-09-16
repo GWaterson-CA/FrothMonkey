@@ -291,6 +291,10 @@ export default async function ListingPage({ params }: ListingPageProps) {
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
                   <div className="flex justify-between">
+                    <span>Location:</span>
+                    <span className="font-medium">{listing.location}</span>
+                  </div>
+                  <div className="flex justify-between">
                     <span>Condition:</span>
                     <span className="capitalize">{listing.condition.replace('_', ' ')}</span>
                   </div>

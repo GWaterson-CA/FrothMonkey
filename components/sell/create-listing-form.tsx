@@ -16,11 +16,13 @@ import { useToast } from '@/components/ui/use-toast'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2, Save, Eye } from 'lucide-react'
 import type { Tables } from '@/lib/database.types'
+import { LocationInterestForm } from '@/components/location-interest-form'
 
 const listingSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title must be less than 100 characters'),
   description: z.string().min(10, 'Description must be at least 10 characters').max(2000, 'Description must be less than 2000 characters'),
   categoryId: z.string().uuid('Please select a category'),
+  location: z.string().min(1, 'Please select a location'),
   condition: z.enum(['new', 'like_new', 'good', 'fair', 'parts']),
   startPrice: z.number().min(0.01, 'Starting price must be at least $0.01'),
   reservePrice: z.number().optional(),
@@ -63,6 +65,7 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
       endTime: defaultEndTime.toISOString().slice(0, 16),
       antiSnipingSeconds: 30,
       condition: 'good',
+      location: 'Squamish, BC',
     },
   })
 
@@ -100,6 +103,7 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
           title: data.title || 'Draft Listing',
           description: data.description || 'Draft description',
           category_id: data.categoryId || categories[0]?.id,
+          location: data.location || 'Squamish, BC',
           condition: data.condition || 'good',
           start_price: data.startPrice || 1,
           start_time: data.startTime || new Date().toISOString(),
@@ -188,6 +192,7 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
               title: data.title,
               description: data.description,
               category_id: data.categoryId,
+              location: data.location,
               condition: data.condition,
               start_price: data.startPrice,
               reserve_price: data.reservePrice || null,
@@ -207,6 +212,7 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
               title: data.title,
               description: data.description,
               category_id: data.categoryId,
+              location: data.location,
               condition: data.condition,
               start_price: data.startPrice,
               reserve_price: data.reservePrice || null,
@@ -319,7 +325,7 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
               <Label htmlFor="categoryId">Category *</Label>
               <Select onValueChange={(value) => setValue('categoryId', value)}>
@@ -336,6 +342,33 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
               </Select>
               {errors.categoryId && (
                 <p className="text-sm text-destructive">{errors.categoryId.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="location">Location *</Label>
+              <Select onValueChange={(value) => setValue('location', value)} defaultValue="Squamish, BC">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select location" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Squamish, BC">Squamish, BC</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="text-xs text-muted-foreground flex items-center gap-2">
+                <span>Can't find your location?</span>
+                <LocationInterestForm 
+                  userId={userId} 
+                  trigger={
+                    <button type="button" className="text-primary hover:underline font-medium">
+                      Let us know
+                    </button>
+                  }
+                />
+                <span>so we can start building the FrothMonkey community around you!</span>
+              </div>
+              {errors.location && (
+                <p className="text-sm text-destructive">{errors.location.message}</p>
               )}
             </div>
 

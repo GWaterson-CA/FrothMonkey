@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Heart, Clock, Gavel } from 'lucide-react'
+import { Heart, Clock, Gavel, MapPin } from 'lucide-react'
 import { formatCurrency, formatRelativeTime, isAuctionEndingSoon, getImageUrl } from '@/lib/utils'
 import { CountdownTimer } from '@/components/countdown-timer'
 
@@ -13,6 +13,7 @@ interface ListingCardProps {
   listing: {
     id: string
     title: string
+    location: string
     current_price: number
     start_price: number
     reserve_price: number | null
@@ -133,7 +134,13 @@ export function ListingCard({ listing }: ListingCardProps) {
 
       <CardFooter className="p-4 pt-0">
         <div className="flex items-center justify-between w-full text-xs text-muted-foreground">
-          <span>@{listing.profiles?.username || 'Unknown'}</span>
+          <div className="flex flex-col gap-1">
+            <span>@{listing.profiles?.username || 'Unknown'}</span>
+            <div className="flex items-center gap-1">
+              <MapPin className="h-3 w-3" />
+              <span>{listing.location}</span>
+            </div>
+          </div>
           {listing.status === 'live' && (
             <div className="flex items-center gap-1">
               <Gavel className="h-3 w-3" />

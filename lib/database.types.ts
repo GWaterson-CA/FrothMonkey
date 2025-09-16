@@ -159,6 +159,7 @@ export type Database = {
           description: string | null
           end_time: string
           id: string
+          location: string
           owner_id: string
           reserve_met: boolean | null
           reserve_price: number | null
@@ -179,6 +180,7 @@ export type Database = {
           description?: string | null
           end_time: string
           id?: string
+          location?: string
           owner_id: string
           reserve_price?: number | null
           start_price: number
@@ -198,6 +200,7 @@ export type Database = {
           description?: string | null
           end_time?: string
           id?: string
+          location?: string
           owner_id?: string
           reserve_price?: number | null
           start_price?: number
@@ -406,6 +409,41 @@ export type Database = {
           {
             foreignKeyName: "listing_reports_reporter_id_fkey"
             columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      location_interest: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          location: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          location: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          location?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "location_interest_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
