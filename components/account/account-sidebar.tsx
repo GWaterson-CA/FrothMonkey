@@ -10,7 +10,8 @@ import {
   Heart, 
   Settings, 
   User,
-  BarChart3
+  BarChart3,
+  Star
 } from 'lucide-react'
 
 const accountNavItems = [
@@ -33,6 +34,11 @@ const accountNavItems = [
     title: 'Watchlist',
     href: '/account/watchlist',
     icon: Heart,
+  },
+  {
+    title: 'Reviews',
+    href: '/account/reviews',
+    icon: Star,
   },
   {
     title: 'Settings',

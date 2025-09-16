@@ -9,6 +9,54 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      auction_questions: {
+        Row: {
+          answer: string | null
+          answered_at: string | null
+          created_at: string | null
+          id: string
+          listing_id: string
+          question: string
+          questioner_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          answer?: string | null
+          answered_at?: string | null
+          created_at?: string | null
+          id?: string
+          listing_id: string
+          question: string
+          questioner_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          answer?: string | null
+          answered_at?: string | null
+          created_at?: string | null
+          id?: string
+          listing_id?: string
+          question?: string
+          questioner_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_questions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_questions_questioner_id_fkey"
+            columns: ["questioner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bids: {
         Row: {
           amount: number
@@ -178,26 +226,35 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bidding_agreement_accepted_at: string | null
           created_at: string | null
           full_name: string | null
           id: string
           is_admin: boolean | null
+          privacy_policy_accepted_at: string | null
+          terms_accepted_at: string | null
           username: string | null
         }
         Insert: {
           avatar_url?: string | null
+          bidding_agreement_accepted_at?: string | null
           created_at?: string | null
           full_name?: string | null
           id: string
           is_admin?: boolean | null
+          privacy_policy_accepted_at?: string | null
+          terms_accepted_at?: string | null
           username?: string | null
         }
         Update: {
           avatar_url?: string | null
+          bidding_agreement_accepted_at?: string | null
           created_at?: string | null
           full_name?: string | null
           id?: string
           is_admin?: boolean | null
+          privacy_policy_accepted_at?: string | null
+          terms_accepted_at?: string | null
           username?: string | null
         }
         Relationships: [
@@ -252,6 +309,109 @@ export type Database = {
           },
         ]
       }
+      user_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          rating: number
+          reviewee_id: string
+          reviewer_id: string
+          transaction_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating: number
+          reviewee_id: string
+          reviewer_id: string
+          transaction_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number
+          reviewee_id?: string
+          reviewer_id?: string
+          transaction_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_reviews_reviewee_id_fkey"
+            columns: ["reviewee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_reviews_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listing_reports: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          listing_id: string
+          reason: string
+          reporter_id: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          listing_id: string
+          reason: string
+          reporter_id: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          listing_id?: string
+          reason?: string
+          reporter_id?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_reports_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       watchlists: {
         Row: {
           created_at: string | null
@@ -290,6 +450,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_review_user: {
+        Args: {
+          transaction_uuid: string
+          reviewer_uuid: string
+          reviewee_uuid: string
+        }
+        Returns: boolean
+      }
+      get_unanswered_questions_count: {
+        Args: {
+          listing_uuid: string
+        }
+        Returns: number
+      }
+      get_user_rating: {
+        Args: {
+          user_uuid: string
+        }
+        Returns: Json
+      }
       finalize_auctions: {
         Args: {
           batch_limit?: number

@@ -23,6 +23,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if user has accepted the bidding agreement
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('bidding_agreement_accepted_at')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError || !profile?.bidding_agreement_accepted_at) {
+      return NextResponse.json(
+        { error: 'You must accept the bidding agreement before placing bids' },
+        { status: 403 }
+      )
+    }
+
     // Parse and validate request body
     const body = await request.json()
     const { listingId, amount } = placeBidSchema.parse(body)

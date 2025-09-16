@@ -12,6 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/components/ui/use-toast'
 import { formatCurrency } from '@/lib/utils'
 import { Loader2, Gavel, ShoppingCart } from 'lucide-react'
+import { BiddingAgreementModal } from '@/components/bidding-agreement-modal'
+import { createClient } from '@/lib/supabase/client'
 
 const bidSchema = z.object({
   amount: z.number().min(0.01, 'Bid amount must be at least $0.01'),
@@ -28,8 +30,11 @@ interface BidFormProps {
 export function BidForm({ listingId, currentPrice, buyNowPrice }: BidFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [minimumBid, setMinimumBid] = useState<number | null>(null)
+  const [showAgreementModal, setShowAgreementModal] = useState(false)
+  const [hasAcceptedAgreement, setHasAcceptedAgreement] = useState<boolean | null>(null)
   const router = useRouter()
   const { toast } = useToast()
+  const supabase = createClient()
 
   const {
     register,
@@ -43,10 +48,23 @@ export function BidForm({ listingId, currentPrice, buyNowPrice }: BidFormProps) 
 
   const bidAmount = watch('amount')
 
-  // Fetch minimum bid amount
+  // Check if user has accepted bidding agreement and fetch minimum bid
   useEffect(() => {
-    const fetchMinimumBid = async () => {
+    const checkAgreementAndFetchMinBid = async () => {
       try {
+        // Check bidding agreement status
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('bidding_agreement_accepted_at')
+            .eq('id', user.id)
+            .single()
+          
+          setHasAcceptedAgreement(!!profile?.bidding_agreement_accepted_at)
+        }
+
+        // Fetch minimum bid
         const response = await fetch('/api/rpc/next-min-bid', {
           method: 'POST',
           headers: {
@@ -61,14 +79,20 @@ export function BidForm({ listingId, currentPrice, buyNowPrice }: BidFormProps) 
           setValue('amount', data.minimumBid)
         }
       } catch (error) {
-        console.error('Error fetching minimum bid:', error)
+        console.error('Error fetching data:', error)
       }
     }
 
-    fetchMinimumBid()
-  }, [listingId, setValue, currentPrice])
+    checkAgreementAndFetchMinBid()
+  }, [listingId, setValue, currentPrice, supabase])
 
   const onSubmit = async (data: BidFormData) => {
+    // Check if user has accepted bidding agreement
+    if (hasAcceptedAgreement === false) {
+      setShowAgreementModal(true)
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -127,6 +151,12 @@ export function BidForm({ listingId, currentPrice, buyNowPrice }: BidFormProps) 
   const handleBuyNow = async () => {
     if (!buyNowPrice) return
 
+    // Check if user has accepted bidding agreement
+    if (hasAcceptedAgreement === false) {
+      setShowAgreementModal(true)
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -169,12 +199,17 @@ export function BidForm({ listingId, currentPrice, buyNowPrice }: BidFormProps) 
     }
   }
 
+  const handleAgreementAccepted = () => {
+    setHasAcceptedAgreement(true)
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Place Your Bid</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Place Your Bid</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="amount">Bid Amount</Label>
@@ -240,8 +275,18 @@ export function BidForm({ listingId, currentPrice, buyNowPrice }: BidFormProps) 
           <p>• Bids are binding and cannot be retracted</p>
           <p>• Anti-sniping protection may extend the auction</p>
           <p>• You will be notified if you are outbid</p>
+          {hasAcceptedAgreement === false && (
+            <p className="text-orange-600 font-medium">• You must accept the bidding agreement to place bids</p>
+          )}
         </div>
       </CardContent>
     </Card>
+
+    <BiddingAgreementModal
+      isOpen={showAgreementModal}
+      onClose={() => setShowAgreementModal(false)}
+      onAccepted={handleAgreementAccepted}
+    />
+    </>
   )
 }

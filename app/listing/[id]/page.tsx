@@ -5,8 +5,6 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Heart, Share2, Flag } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getUserProfile } from '@/lib/auth'
 import { formatCurrency, formatDateTime, getImageUrl } from '@/lib/utils'
@@ -14,6 +12,11 @@ import { CountdownTimer } from '@/components/countdown-timer'
 import { BidHistory } from '@/components/bid-history'
 import { BidForm } from '@/components/bid-form'
 import { ListingImages } from '@/components/listing-images'
+import { AuctionQuestions } from '@/components/auction-questions'
+import { UserRatingDisplay } from '@/components/reviews/star-rating'
+import { WatchlistToggleButton } from '@/components/account/watchlist-toggle-button'
+import { ShareButton } from '@/components/share-button'
+import { ReportButton } from '@/components/report-button'
 
 interface ListingPageProps {
   params: {
@@ -96,6 +99,17 @@ export default async function ListingPage({ params }: ListingPageProps) {
   const isOwner = profile?.id === listing.owner_id
   const canBid = profile && !isOwner && listing.status === 'live'
 
+  // Fetch seller rating
+  let sellerRating = null
+  if (listing.owner_id) {
+    const { data: ratingData } = await supabase
+      .rpc('get_user_rating', { user_uuid: listing.owner_id })
+    
+    if (ratingData) {
+      sellerRating = ratingData
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -136,18 +150,18 @@ export default async function ListingPage({ params }: ListingPageProps) {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    <Heart className="h-4 w-4 mr-2" />
-                    Watch
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Share
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Flag className="h-4 w-4 mr-2" />
-                    Report
-                  </Button>
+                  <WatchlistToggleButton 
+                    listingId={listing.id}
+                    userId={profile?.id}
+                  />
+                  <ShareButton 
+                    listingId={listing.id}
+                    title={listing.title}
+                  />
+                  <ReportButton 
+                    listingId={listing.id}
+                    userId={profile?.id}
+                  />
                 </div>
               </div>
 
@@ -169,6 +183,13 @@ export default async function ListingPage({ params }: ListingPageProps) {
               <BidHistory 
                 listingId={listing.id} 
                 initialBids={bids || []} 
+              />
+
+              {/* Questions & Answers */}
+              <AuctionQuestions
+                listingId={listing.id}
+                isOwner={isOwner}
+                isLoggedIn={!!profile}
               />
             </div>
 
@@ -240,13 +261,24 @@ export default async function ListingPage({ params }: ListingPageProps) {
                     <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
                       {listing.profiles?.username?.charAt(0).toUpperCase() || 'U'}
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <div className="font-semibold">
-                        {listing.profiles?.full_name || 'Unknown'}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
                         @{listing.profiles?.username || 'unknown'}
                       </div>
+                      <div className="text-sm text-muted-foreground mb-1">
+                        Seller
+                      </div>
+                      {sellerRating ? (
+                        <UserRatingDisplay
+                          rating={sellerRating.average_rating}
+                          reviewCount={sellerRating.review_count}
+                          size="sm"
+                        />
+                      ) : (
+                        <div className="text-xs text-muted-foreground">
+                          No reviews yet
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -287,3 +319,4 @@ export default async function ListingPage({ params }: ListingPageProps) {
     </div>
   )
 }
+
