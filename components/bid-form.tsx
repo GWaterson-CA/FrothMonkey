@@ -25,9 +25,10 @@ interface BidFormProps {
   listingId: string
   currentPrice: number
   buyNowPrice?: number | null
+  reserveMet?: boolean
 }
 
-export function BidForm({ listingId, currentPrice, buyNowPrice }: BidFormProps) {
+export function BidForm({ listingId, currentPrice, buyNowPrice, reserveMet = false }: BidFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [minimumBid, setMinimumBid] = useState<number | null>(null)
   const [showAgreementModal, setShowAgreementModal] = useState(false)
@@ -245,8 +246,8 @@ export function BidForm({ listingId, currentPrice, buyNowPrice }: BidFormProps) 
           </Button>
         </form>
 
-        {/* Buy Now Button */}
-        {buyNowPrice && (
+        {/* Buy Now Button - Only show if reserve not met */}
+        {buyNowPrice && !reserveMet && (
           <>
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -269,6 +270,14 @@ export function BidForm({ listingId, currentPrice, buyNowPrice }: BidFormProps) 
               Buy Now for {formatCurrency(buyNowPrice)}
             </Button>
           </>
+        )}
+
+        {/* Reserve met message */}
+        {buyNowPrice && reserveMet && (
+          <div className="text-center py-4 text-sm text-muted-foreground">
+            <p>Buy Now is no longer available - reserve price has been reached.</p>
+            <p>The auction will continue until the end time.</p>
+          </div>
         )}
 
         <div className="text-xs text-muted-foreground space-y-1">

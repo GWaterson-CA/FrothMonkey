@@ -101,10 +101,22 @@ export function Footer() {
 
         {/* Bottom Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span>© 2024 FrothMonkey</span>
-            <span>•</span>
-            <span>Built with Next.js & Supabase</span>
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <span>© 2024 FrothMonkey</span>
+              <span className="hidden sm:inline">•</span>
+              <Link href="/terms" className="hover:text-foreground transition-colors">
+                Terms
+              </Link>
+              <span>•</span>
+              <Link href="/privacy" className="hover:text-foreground transition-colors">
+                Privacy
+              </Link>
+            </div>
+            <div className="hidden sm:flex items-center gap-4">
+              <span>•</span>
+              <span>Built with Next.js & Supabase</span>
+            </div>
           </div>
 
           <div className="flex items-center gap-4 text-sm text-muted-foreground">

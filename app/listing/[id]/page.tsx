@@ -141,7 +141,7 @@ export default async function ListingPage({ params }: ListingPageProps) {
                     {listing.reserve_met && (
                       <Badge variant="secondary">Reserve Met</Badge>
                     )}
-                    {listing.buy_now_enabled && (
+                    {listing.buy_now_enabled && !listing.reserve_met && (
                       <Badge variant="outline">Buy Now Available</Badge>
                     )}
                   </div>
@@ -221,7 +221,7 @@ export default async function ListingPage({ params }: ListingPageProps) {
                         </span>
                       </div>
                     )}
-                    {listing.buy_now_price && (
+                    {listing.buy_now_price && !listing.reserve_met && (
                       <div className="flex justify-between">
                         <span>Buy now price:</span>
                         <span className="font-semibold text-primary">
@@ -248,6 +248,7 @@ export default async function ListingPage({ params }: ListingPageProps) {
                   listingId={listing.id}
                   currentPrice={listing.current_price || listing.start_price}
                   buyNowPrice={listing.buy_now_price}
+                  reserveMet={listing.reserve_met}
                 />
               )}
 
