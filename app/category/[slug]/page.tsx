@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
-import { CategoryNav } from '@/components/category-nav'
 import { ListingsGrid } from '@/components/listings-grid'
 import { createClient } from '@/lib/supabase/server'
 
@@ -53,12 +52,6 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     notFound()
   }
 
-  // Fetch all categories for navigation
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('*')
-    .order('sort_order')
-
   // Get listing count for this category
   const { count: listingCount } = await supabase
     .from('listings')
@@ -69,7 +62,6 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <CategoryNav categories={categories || []} />
       
       <main className="flex-1">
         <div className="container py-8">

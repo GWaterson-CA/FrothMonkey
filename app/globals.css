@@ -2,6 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ensure dropdown menus appear above all content */
+.dropdown-portal {
+  position: fixed !important;
+  z-index: 9999 !important;
+}
+
+/* Prevent parent containers from clipping dropdowns */
+.dropdown-container {
+  overflow: visible !important;
+}
+
+/* Custom dropdown styling for better UX */
+.category-dropdown {
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+}
+
+/* Dark mode dropdown adjustments */
+@media (prefers-color-scheme: dark) {
+  .category-dropdown {
+    background: rgba(17, 24, 39, 0.97) !important;
+    border-color: rgba(75, 85, 99, 0.8) !important;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

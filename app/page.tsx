@@ -1,11 +1,9 @@
 import { Suspense } from 'react'
 import { Header } from '@/components/header'
-import { CategoryNav } from '@/components/category-nav'
 import { ListingsGrid } from '@/components/listings-grid'
 import { ListingsTabs } from '@/components/listings-tabs'
 import { Hero } from '@/components/hero'
 import { Footer } from '@/components/footer'
-import { createClient } from '@/lib/supabase/server'
 
 interface HomePageProps {
   searchParams: {
@@ -17,18 +15,9 @@ interface HomePageProps {
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
-  const supabase = createClient()
-  
-  // Fetch categories for navigation
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('*')
-    .order('sort_order')
-
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <CategoryNav categories={categories || []} />
       
       <main className="flex-1">
         {!searchParams.q && (
