@@ -102,20 +102,31 @@ export type Database = {
           name: string
           slug: string
           sort_order: number | null
+          parent_id: string | null
         }
         Insert: {
           id?: string
           name: string
           slug: string
           sort_order?: number | null
+          parent_id?: string | null
         }
         Update: {
           id?: string
           name?: string
           slug?: string
           sort_order?: number | null
+          parent_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       listing_images: {
         Row: {

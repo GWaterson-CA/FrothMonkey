@@ -95,9 +95,7 @@ ip_version = "IPv4"
 [storage]
 enabled = true
 file_size_limit = "50MiB"
-image_transformation = {
-  enabled = true
-}
+image_transformation = { enabled = true }
 
 [edge_functions]
 enabled = true
