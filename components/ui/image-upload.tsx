@@ -11,9 +11,10 @@ import Image from 'next/image'
 import imageCompression from 'browser-image-compression'
 
 interface ImageUploadProps {
-  listingId?: string
+  listingId?: string | null
   maxImages?: number
   onImagesChange?: (images: UploadedImage[]) => void
+  onCreateDraft?: () => Promise<string>
   disabled?: boolean
 }
 
@@ -30,6 +31,7 @@ export function ImageUpload({
   listingId, 
   maxImages = 10, 
   onImagesChange,
+  onCreateDraft,
   disabled = false 
 }: ImageUploadProps) {
   const [images, setImages] = useState<UploadedImage[]>([])
@@ -123,6 +125,22 @@ export function ImageUpload({
 
     setIsUploading(true)
 
+    // If no listingId and we have a createDraft callback, create draft first
+    let currentListingId = listingId
+    if (!currentListingId && onCreateDraft) {
+      try {
+        currentListingId = await onCreateDraft()
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to create draft listing for image upload',
+          variant: 'destructive',
+        })
+        setIsUploading(false)
+        return
+      }
+    }
+
     const newImages: UploadedImage[] = files.map(file => ({
       id: crypto.randomUUID(),
       file,
@@ -142,8 +160,51 @@ export function ImageUpload({
         const compressedFile = await compressImage(file)
         
         // Upload to Supabase if listing ID is available
-        if (listingId) {
-          const path = await uploadToSupabase(compressedFile)
+        if (currentListingId) {
+          // We need to pass the currentListingId to the upload function
+          const uploadToSupabaseWithId = async (file: File): Promise<string> => {
+            try {
+              // Get signed upload URL
+              const response = await fetch('/api/upload', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  fileName: file.name,
+                  fileType: file.type,
+                  listingId: currentListingId,
+                }),
+              })
+
+              if (!response.ok) {
+                const error = await response.json()
+                throw new Error(error.error || 'Failed to get upload URL')
+              }
+
+              const { uploadUrl, path } = await response.json()
+
+              // Upload file to Supabase Storage
+              const uploadResponse = await fetch(uploadUrl, {
+                method: 'PUT',
+                body: file,
+                headers: {
+                  'Content-Type': file.type,
+                },
+              })
+
+              if (!uploadResponse.ok) {
+                throw new Error('Failed to upload file')
+              }
+
+              return path
+            } catch (error) {
+              console.error('Upload error:', error)
+              throw error
+            }
+          }
+          
+          const path = await uploadToSupabaseWithId(compressedFile)
           
           // Update the image with the uploaded path
           setImages(prev => prev.map(img => 

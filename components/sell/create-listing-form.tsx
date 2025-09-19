@@ -71,26 +71,6 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
 
   const watchedValues = watch()
 
-  // Handle creating draft for image uploads
-  const handleCreateDraftForImages = async () => {
-    if (listingId) return // Already have a draft
-    
-    try {
-      const formData = watchedValues
-      const id = await createDraftListing(formData as ListingFormData)
-      
-      toast({
-        title: 'Draft Created',
-        description: 'You can now upload images for your listing',
-      })
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to create draft listing',
-        variant: 'destructive',
-      })
-    }
-  }
 
   // Create a draft listing first to get an ID for image uploads
   const createDraftListing = async (data: ListingFormData) => {
@@ -531,28 +511,12 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
           <CardTitle>Images</CardTitle>
         </CardHeader>
         <CardContent>
-          {!listingId && (
-            <div className="mb-4 p-4 bg-muted/30 rounded-lg">
-              <p className="text-sm text-muted-foreground mb-3">
-                To upload images, you need to create a draft listing first. 
-                Fill in at least the title and click the button below.
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCreateDraftForImages}
-                disabled={!watchedValues.title || isLoading}
-              >
-                Create Draft for Images
-              </Button>
-            </div>
-          )}
-          
           <ImageUpload
             listingId={listingId}
             maxImages={10}
             onImagesChange={setImages}
-            disabled={isLoading || !listingId}
+            onCreateDraft={() => createDraftListing(watchedValues as ListingFormData)}
+            disabled={isLoading}
           />
         </CardContent>
       </Card>
