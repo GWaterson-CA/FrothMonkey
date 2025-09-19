@@ -17,6 +17,7 @@ import { UserRatingDisplay } from '@/components/reviews/star-rating'
 import { WatchlistToggleButton } from '@/components/account/watchlist-toggle-button'
 import { ShareButton } from '@/components/share-button'
 import { ReportButton } from '@/components/report-button'
+import { AnalyticsTracker } from '@/components/analytics-tracker'
 
 interface ListingPageProps {
   params: {
@@ -112,6 +113,7 @@ export default async function ListingPage({ params }: ListingPageProps) {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <AnalyticsTracker listingId={listing.id} />
       <Header />
       
       <main className="flex-1">

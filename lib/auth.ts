@@ -80,3 +80,16 @@ export async function requireProfile(): Promise<{
   }
   return profile
 }
+
+export async function requireAdmin() {
+  const profile = await requireProfile()
+  if (!profile.is_admin) {
+    redirect('/')
+  }
+  return profile
+}
+
+export async function isAdmin(): Promise<boolean> {
+  const profile = await getUserProfile()
+  return profile?.is_admin === true
+}

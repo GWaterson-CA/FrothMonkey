@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Search, User, Plus, Heart, Gavel, ChevronDown } from 'lucide-react'
+import { Search, User, Plus, Heart, Gavel, ChevronDown, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { getUser, getUserProfile } from '@/lib/auth'
@@ -76,6 +76,14 @@ export async function Header() {
                     Account
                   </Link>
                 </Button>
+                {profile.is_admin && (
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/admin">
+                      <Shield className="h-4 w-4 mr-2" />
+                      Admin
+                    </Link>
+                  </Button>
+                )}
                 <UserNav profile={profile} />
               </>
             ) : user && !profile ? (
