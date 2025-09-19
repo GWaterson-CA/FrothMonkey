@@ -15,10 +15,14 @@ export default async function NewListingPage() {
   const supabase = createClient()
 
   // Fetch categories with hierarchical structure
-  const { data: categories } = await supabase
+  const { data: categories, error: categoriesError } = await supabase
     .from('categories')
     .select('id, name, slug, parent_id, sort_order')
-    .order('parent_id NULLS FIRST, sort_order')
+    .order('sort_order')
+  
+  if (categoriesError) {
+    console.error('Categories fetch error:', categoriesError)
+  }
 
   return (
     <div className="min-h-screen flex flex-col">

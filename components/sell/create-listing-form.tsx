@@ -328,13 +328,19 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
                   <SelectTrigger>
                     <SelectValue placeholder="Select a primary category" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {primaryCategories.map((category) => (
+                <SelectContent>
+                  {primaryCategories.length > 0 ? (
+                    primaryCategories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}
                       </SelectItem>
-                    ))}
-                  </SelectContent>
+                    ))
+                  ) : (
+                    <SelectItem disabled value="no-categories">
+                      No categories available
+                    </SelectItem>
+                  )}
+                </SelectContent>
                 </Select>
               </div>
 

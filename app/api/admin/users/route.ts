@@ -16,8 +16,7 @@ export async function GET() {
         full_name,
         avatar_url,
         is_admin,
-        created_at,
-        email:users!inner(email)
+        created_at
       `)
       .order('created_at', { ascending: false })
 

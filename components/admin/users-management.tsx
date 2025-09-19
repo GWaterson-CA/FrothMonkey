@@ -16,7 +16,6 @@ interface User {
   avatar_url: string | null
   is_admin: boolean
   created_at: string
-  email?: any
 }
 
 export function UsersManagement() {
