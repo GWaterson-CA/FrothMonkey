@@ -14,11 +14,11 @@ export default async function NewListingPage() {
   const profile = await requireProfile()
   const supabase = createClient()
 
-  // Fetch categories for the form
+  // Fetch categories with hierarchical structure
   const { data: categories } = await supabase
     .from('categories')
-    .select('*')
-    .order('sort_order')
+    .select('id, name, slug, parent_id, sort_order')
+    .order('parent_id NULLS FIRST, sort_order')
 
   return (
     <div className="min-h-screen flex flex-col">

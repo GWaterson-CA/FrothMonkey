@@ -44,6 +44,7 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
   const [isDraft, setIsDraft] = useState(false)
   const [images, setImages] = useState<UploadedImage[]>([])
   const [listingId, setListingId] = useState<string | null>(null)
+  const [selectedPrimaryCategory, setSelectedPrimaryCategory] = useState<string>('')
   const router = useRouter()
   const { toast } = useToast()
   const supabase = createClient()
@@ -71,6 +72,14 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
 
   const watchedValues = watch()
 
+  // Organize categories into primary and subcategories
+  const primaryCategories = categories.filter(cat => cat.parent_id === null)
+  const subcategories = categories.filter(cat => cat.parent_id !== null)
+  
+  // Get subcategories for the selected primary category
+  const availableSubcategories = subcategories.filter(
+    subcat => subcat.parent_id === selectedPrimaryCategory
+  )
 
   // Create a draft listing first to get an ID for image uploads
   const createDraftListing = async (data: ListingFormData) => {
@@ -305,26 +314,59 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="categoryId">Category *</Label>
-              <Select onValueChange={(value) => setValue('categoryId', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.categoryId && (
-                <p className="text-sm text-destructive">{errors.categoryId.message}</p>
+          {/* Category Selection - Full Width */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="primaryCategory">Primary Category *</Label>
+                <Select 
+                  onValueChange={(value) => {
+                    setSelectedPrimaryCategory(value)
+                    setValue('categoryId', '') // Reset subcategory when primary changes
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a primary category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {primaryCategories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {selectedPrimaryCategory && (
+                <div className="space-y-2">
+                  <Label htmlFor="categoryId">Subcategory *</Label>
+                  <Select onValueChange={(value) => setValue('categoryId', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a subcategory" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableSubcategories.map((subcategory) => (
+                        <SelectItem key={subcategory.id} value={subcategory.id}>
+                          {subcategory.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.categoryId && (
+                    <p className="text-sm text-destructive">{errors.categoryId.message}</p>
+                  )}
+                </div>
               )}
             </div>
+            
+            {!selectedPrimaryCategory && errors.categoryId && (
+              <p className="text-sm text-destructive">Please select a primary category first</p>
+            )}
+          </div>
 
+          {/* Location and Condition */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="location">Location *</Label>
               <Select onValueChange={(value) => setValue('location', value)} defaultValue="Squamish, BC">
