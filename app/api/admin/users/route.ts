@@ -8,17 +8,9 @@ export async function GET() {
 
     const supabase = createClient()
 
+    // Use a more comprehensive query to get user statistics
     const { data: users, error } = await supabase
-      .from('profiles')
-      .select(`
-        id,
-        username,
-        full_name,
-        avatar_url,
-        is_admin,
-        created_at
-      `)
-      .order('created_at', { ascending: false })
+      .rpc('get_admin_user_stats')
 
     if (error) {
       console.error('Users fetch error:', error)
