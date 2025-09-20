@@ -13,28 +13,40 @@ export async function GET() {
       .rpc('get_admin_user_stats')
 
     if (error) {
-      console.log('Admin stats function not available, falling back to basic query:', error)
+      console.log('Admin stats function not available, falling back to basic admin query:', error)
       
-      // Fallback to basic user query if the function doesn't exist
-      const { data: basicUsers, error: basicError } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          username,
-          full_name,
-          avatar_url,
-          is_admin,
-          created_at
-        `)
-        .order('created_at', { ascending: false })
+      // Try the simple admin users function first
+      const { data: adminUsers, error: adminError } = await supabase
+        .rpc('get_all_users_admin')
 
-      if (basicError) {
-        console.error('Basic users fetch error:', basicError)
-        return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
+      if (adminError) {
+        console.log('Simple admin function not available, trying direct query:', adminError)
+        
+        // Last resort: direct query (may be filtered by RLS)
+        const { data: basicUsers, error: basicError } = await supabase
+          .from('profiles')
+          .select(`
+            id,
+            username,
+            full_name,
+            avatar_url,
+            is_admin,
+            created_at
+          `)
+          .order('created_at', { ascending: false })
+
+        if (basicError) {
+          console.error('All user queries failed:', basicError)
+          return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
+        }
+
+        users = basicUsers
+      } else {
+        users = adminUsers
       }
 
       // Add default values for missing statistics
-      users = basicUsers.map(user => ({
+      users = users.map(user => ({
         ...user,
         email: null,
         total_listings: 0,
