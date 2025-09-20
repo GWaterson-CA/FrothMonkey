@@ -23,6 +23,7 @@ export const getUserProfile = cache(async (): Promise<{
   avatar_url: string | null;
   is_admin: boolean | null;
   created_at: string | null;
+  payment_preferences: string[] | null;
 } | null> => {
   const user = await getUser()
   if (!user) return null
@@ -34,7 +35,7 @@ export const getUserProfile = cache(async (): Promise<{
     // Simple query without complex joins to avoid recursion
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('id, username, full_name, avatar_url, is_admin, created_at')
+      .select('id, username, full_name, avatar_url, is_admin, created_at, payment_preferences')
       .eq('id', user.id)
       .limit(1)
       .maybeSingle()
@@ -51,6 +52,7 @@ export const getUserProfile = cache(async (): Promise<{
       avatar_url: string | null;
       is_admin: boolean | null;
       created_at: string | null;
+      payment_preferences: string[] | null;
     } | null
   } catch (error) {
     console.error('Error:', error)
@@ -73,6 +75,7 @@ export async function requireProfile(): Promise<{
   avatar_url: string | null;
   is_admin: boolean | null;
   created_at: string | null;
+  payment_preferences: string[] | null;
 }> {
   const profile = await getUserProfile()
   if (!profile) {
