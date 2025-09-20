@@ -7,7 +7,7 @@ const bidAttempts = new Map<string, { count: number; lastAttempt: number }>()
 
 const placeBidSchema = z.object({
   listingId: z.string().uuid(),
-  amount: z.number().positive(),
+  amount: z.number().min(1, 'Bid must be at least $1.00').multipleOf(1, 'Bids must be in full dollars (no cents)'),
 })
 
 export async function POST(request: NextRequest) {

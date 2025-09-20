@@ -24,9 +24,9 @@ const listingSchema = z.object({
   categoryId: z.string().uuid('Please select a category'),
   location: z.string().min(1, 'Please select a location'),
   condition: z.enum(['new', 'like_new', 'good', 'fair', 'parts']),
-  startPrice: z.number().min(0.01, 'Starting price must be at least $0.01'),
-  reservePrice: z.number().optional(),
-  buyNowPrice: z.number().optional(),
+  startPrice: z.number().min(1, 'Starting price must be at least $1.00').multipleOf(1, 'Starting price must be in full dollars (no cents)'),
+  reservePrice: z.number().min(1, 'Reserve price must be at least $1.00').multipleOf(1, 'Reserve price must be in full dollars (no cents)').optional(),
+  buyNowPrice: z.number().min(1, 'Buy now price must be at least $1.00').multipleOf(1, 'Buy now price must be in full dollars (no cents)').optional(),
   startTime: z.string(),
   endTime: z.string(),
   antiSnipingSeconds: z.number().min(0).max(300).default(30),
@@ -436,9 +436,9 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
                 <Input
                   id="startPrice"
                   type="number"
-                  step="0.01"
-                  min="0.01"
-                  placeholder="0.00"
+                  step="1"
+                  min="1"
+                  placeholder="1"
                   className="pl-6"
                   {...register('startPrice', { valueAsNumber: true })}
                   disabled={isLoading}
@@ -456,8 +456,8 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
                 <Input
                   id="reservePrice"
                   type="number"
-                  step="0.01"
-                  min="0.01"
+                  step="1"
+                  min="1"
                   placeholder="Optional"
                   className="pl-6"
                   {...register('reservePrice', { valueAsNumber: true })}
@@ -479,8 +479,8 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
                 <Input
                   id="buyNowPrice"
                   type="number"
-                  step="0.01"
-                  min="0.01"
+                  step="1"
+                  min="1"
                   placeholder="Optional"
                   className="pl-6"
                   {...register('buyNowPrice', { valueAsNumber: true })}

@@ -16,7 +16,7 @@ import { BiddingAgreementModal } from '@/components/bidding-agreement-modal'
 import { createClient } from '@/lib/supabase/client'
 
 const bidSchema = z.object({
-  amount: z.number().min(0.01, 'Bid amount must be at least $0.01'),
+  amount: z.number().min(1, 'Bid amount must be at least $1.00').multipleOf(1, 'Bids must be in full dollars (no cents)'),
 })
 
 type BidFormData = z.infer<typeof bidSchema>
@@ -221,8 +221,8 @@ export function BidForm({ listingId, currentPrice, buyNowPrice, reserveMet = fal
               <Input
                 id="amount"
                 type="number"
-                step="0.01"
-                min={minimumBid || 0.01}
+                step="1"
+                min={minimumBid || 1}
                 placeholder="Enter bid amount"
                 className="pl-6"
                 {...register('amount', { valueAsNumber: true })}
