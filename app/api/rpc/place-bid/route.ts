@@ -58,12 +58,48 @@ export async function POST(request: NextRequest) {
     bidAttempts.set(rateLimitKey, { count: 1, lastAttempt: now })
 
     // Call the place_bid SQL function
-    const { data, error } = await supabase.rpc('place_bid', {
-      listing_id: listingId,
-      bid_amount: amount,
-      bidder: user.id,
-      is_buy_now: isBuyNow,
-    })
+    // Try with new signature first, fallback to old signature for backward compatibility
+    let data, error
+    
+    try {
+      // Try new function signature with is_buy_now parameter
+      const result = await supabase.rpc('place_bid', {
+        listing_id: listingId,
+        bid_amount: amount,
+        bidder: user.id,
+        is_buy_now: isBuyNow,
+      })
+      data = result.data
+      error = result.error
+    } catch (newSignatureError) {
+      // If new signature fails, try old signature (for backward compatibility)
+      console.log('New signature failed, trying old signature:', newSignatureError)
+      
+      // For old signature, handle Buy Now logic in API instead of database
+      if (isBuyNow) {
+        // Get listing info to check if Buy Now is available
+        const { data: listing } = await supabase
+          .from('listings')
+          .select('buy_now_enabled, buy_now_price, reserve_met')
+          .eq('id', listingId)
+          .single()
+        
+        if (listing?.reserve_met) {
+          return NextResponse.json(
+            { error: 'Buy Now is no longer available - reserve price has been reached' },
+            { status: 400 }
+          )
+        }
+      }
+      
+      const result = await supabase.rpc('place_bid', {
+        listing_id: listingId,
+        bid_amount: amount,
+        bidder: user.id,
+      })
+      data = result.data
+      error = result.error
+    }
 
     if (error) {
       console.error('Database error placing bid:', error)
