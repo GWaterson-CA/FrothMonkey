@@ -19,6 +19,19 @@ import { ShareButton } from '@/components/share-button'
 import { ReportButton } from '@/components/report-button'
 import { AnalyticsTracker } from '@/components/analytics-tracker'
 
+// Helper function to format payment method labels
+function formatPaymentMethod(method: string): string {
+  const methodLabels: Record<string, string> = {
+    'cash': 'Cash',
+    'crypto': 'Cryptocurrency',
+    'e-transfer': 'E-Transfer',
+    'cheque': 'Cheque',
+    'wire': 'Wire Transfer',
+    'bank_draft': 'Bank Draft',
+  }
+  return methodLabels[method] || method
+}
+
 interface ListingPageProps {
   params: {
     id: string
@@ -62,7 +75,8 @@ export default async function ListingPage({ params }: ListingPageProps) {
       profiles!listings_owner_id_fkey (
         username,
         full_name,
-        avatar_url
+        avatar_url,
+        payment_preferences
       ),
       listing_images (
         id,
@@ -193,6 +207,28 @@ export default async function ListingPage({ params }: ListingPageProps) {
                 isOwner={isOwner}
                 isLoggedIn={!!profile}
               />
+
+              {/* Payment Preferences */}
+              {listing.profiles?.payment_preferences && 
+               listing.profiles.payment_preferences.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Payment Options</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      The seller accepts the following payment methods:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {listing.profiles.payment_preferences.map((method) => (
+                        <Badge key={method} variant="secondary" className="text-sm">
+                          {formatPaymentMethod(method)}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
             {/* Sidebar */}

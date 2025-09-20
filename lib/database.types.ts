@@ -245,6 +245,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_admin: boolean | null
+          payment_preferences: string[] | null
           privacy_policy_accepted_at: string | null
           terms_accepted_at: string | null
           username: string | null
@@ -256,6 +257,7 @@ export type Database = {
           full_name?: string | null
           id: string
           is_admin?: boolean | null
+          payment_preferences?: string[] | null
           privacy_policy_accepted_at?: string | null
           terms_accepted_at?: string | null
           username?: string | null
@@ -267,6 +269,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_admin?: boolean | null
+          payment_preferences?: string[] | null
           privacy_policy_accepted_at?: string | null
           terms_accepted_at?: string | null
           username?: string | null

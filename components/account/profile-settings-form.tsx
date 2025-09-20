@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/ui/use-toast'
+import { Checkbox } from '@/components/ui/checkbox'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2, Save } from 'lucide-react'
 import type { Tables } from '@/lib/database.types'
@@ -21,9 +22,19 @@ const profileSchema = z.object({
     .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens'),
   fullName: z.string().min(2, 'Full name must be at least 2 characters'),
   avatarUrl: z.string().url().optional().or(z.literal('')),
+  paymentPreferences: z.array(z.string()).optional(),
 })
 
 type ProfileFormData = z.infer<typeof profileSchema>
+
+const PAYMENT_METHODS = [
+  { value: 'cash', label: 'Cash' },
+  { value: 'crypto', label: 'Cryptocurrency' },
+  { value: 'e-transfer', label: 'E-Transfer' },
+  { value: 'cheque', label: 'Cheque' },
+  { value: 'wire', label: 'Wire Transfer' },
+  { value: 'bank_draft', label: 'Bank Draft' },
+] as const
 
 interface ProfileSettingsFormProps {
   profile: Tables<'profiles'>
@@ -31,6 +42,9 @@ interface ProfileSettingsFormProps {
 
 export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [paymentPreferences, setPaymentPreferences] = useState<string[]>(
+    profile.payment_preferences || []
+  )
   const router = useRouter()
   const { toast } = useToast()
   const supabase = createClient()
@@ -46,6 +60,7 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
       username: profile.username || '',
       fullName: profile.full_name || '',
       avatarUrl: profile.avatar_url || '',
+      paymentPreferences: profile.payment_preferences || [],
     },
   })
 
@@ -78,6 +93,7 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
           username: data.username,
           full_name: data.fullName,
           avatar_url: data.avatarUrl || null,
+          payment_preferences: paymentPreferences,
         })
         .eq('id', profile.id)
 
@@ -152,6 +168,45 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
         <p className="text-sm text-muted-foreground">
           Provide a URL to an image to use as your profile picture.
         </p>
+      </div>
+
+      {/* Payment Preferences */}
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label className="text-base font-medium">Payment Preferences</Label>
+          <p className="text-sm text-muted-foreground">
+            Select the payment methods you accept when selling items. This information will be displayed to potential buyers on your listings.
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {PAYMENT_METHODS.map((method) => {
+            const isChecked = paymentPreferences.includes(method.value)
+            
+            return (
+              <div key={method.value} className="flex items-center space-x-2">
+                <Checkbox
+                  id={method.value}
+                  checked={isChecked}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setPaymentPreferences(prev => [...prev, method.value])
+                    } else {
+                      setPaymentPreferences(prev => prev.filter(p => p !== method.value))
+                    }
+                  }}
+                  disabled={isLoading}
+                />
+                <Label 
+                  htmlFor={method.value}
+                  className="text-sm font-normal cursor-pointer"
+                >
+                  {method.label}
+                </Label>
+              </div>
+            )
+          })}
+        </div>
       </div>
 
       <div className="flex items-center gap-4">

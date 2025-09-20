@@ -105,6 +105,7 @@ export function BidForm({ listingId, currentPrice, buyNowPrice, reserveMet = fal
         body: JSON.stringify({
           listingId,
           amount: data.amount,
+          isBuyNow: false,
         }),
       })
 
@@ -169,6 +170,7 @@ export function BidForm({ listingId, currentPrice, buyNowPrice, reserveMet = fal
         body: JSON.stringify({
           listingId,
           amount: buyNowPrice,
+          isBuyNow: true,
         }),
       })
 

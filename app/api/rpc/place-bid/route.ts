@@ -8,6 +8,7 @@ const bidAttempts = new Map<string, { count: number; lastAttempt: number }>()
 const placeBidSchema = z.object({
   listingId: z.string().uuid(),
   amount: z.number().min(1, 'Bid must be at least $1.00').multipleOf(1, 'Bids must be in full dollars (no cents)'),
+  isBuyNow: z.boolean().optional().default(false),
 })
 
 export async function POST(request: NextRequest) {
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     // Parse and validate request body
     const body = await request.json()
-    const { listingId, amount } = placeBidSchema.parse(body)
+    const { listingId, amount, isBuyNow } = placeBidSchema.parse(body)
 
     // Rate limiting: 1 bid per user per listing per 2 seconds
     const rateLimitKey = `${user.id}-${listingId}`
@@ -61,6 +62,7 @@ export async function POST(request: NextRequest) {
       listing_id: listingId,
       bid_amount: amount,
       bidder: user.id,
+      is_buy_now: isBuyNow,
     })
 
     if (error) {
