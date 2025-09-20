@@ -1,5 +1,4 @@
-[project]
-ref = "ysoxcftclnlmvxuopdun"
+project_id = "ysoxcftclnlmvxuopdun"
 
 [api]
 enabled = true
@@ -13,8 +12,6 @@ enabled = true
 site_url = "http://localhost:3000"
 additional_redirect_urls = ["https://localhost:3000"]
 jwt_expiry = 3600
-refresh_token_rotation_enabled = true
-security_update_password_require_reauthentication = true
 
 [auth.email]
 enable_signup = true
@@ -90,16 +87,12 @@ max_client_conn = 100
 
 [realtime]
 enabled = true
-ip_version = "IPv4"
 
 [storage]
 enabled = true
 file_size_limit = "50MiB"
 image_transformation = { enabled = true }
 
-[edge_functions]
-enabled = true
-ip_version = "IPv4"
 
 [analytics]
 enabled = false

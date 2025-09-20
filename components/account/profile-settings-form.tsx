@@ -42,9 +42,6 @@ interface ProfileSettingsFormProps {
 
 export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [paymentPreferences, setPaymentPreferences] = useState<string[]>(
-    profile.payment_preferences || []
-  )
   const router = useRouter()
   const { toast } = useToast()
   const supabase = createClient()
@@ -54,6 +51,8 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
     handleSubmit,
     formState: { errors, isDirty },
     setError,
+    watch,
+    setValue,
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -63,6 +62,8 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
       paymentPreferences: profile.payment_preferences || [],
     },
   })
+
+  const paymentPreferences = watch('paymentPreferences') || []
 
   const onSubmit = async (data: ProfileFormData) => {
     setIsLoading(true)
@@ -93,7 +94,7 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
           username: data.username,
           full_name: data.fullName,
           avatar_url: data.avatarUrl || null,
-          payment_preferences: paymentPreferences,
+          payment_preferences: data.paymentPreferences || [],
         })
         .eq('id', profile.id)
 
@@ -189,11 +190,16 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
                   id={method.value}
                   checked={isChecked}
                   onCheckedChange={(checked) => {
+                    const currentPreferences = paymentPreferences
+                    let newPreferences: string[]
+                    
                     if (checked) {
-                      setPaymentPreferences(prev => [...prev, method.value])
+                      newPreferences = [...currentPreferences, method.value]
                     } else {
-                      setPaymentPreferences(prev => prev.filter(p => p !== method.value))
+                      newPreferences = currentPreferences.filter(p => p !== method.value)
                     }
+                    
+                    setValue('paymentPreferences', newPreferences, { shouldDirty: true })
                   }}
                   disabled={isLoading}
                 />
