@@ -9,6 +9,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    console.log('OG image request for listing:', params.id)
     const supabase = createClient()
     
     const { data: listing } = await supabase
@@ -30,8 +31,11 @@ export async function GET(
       .single()
 
     if (!listing) {
+      console.log('Listing not found for ID:', params.id)
       return new Response('Listing not found', { status: 404 })
     }
+
+    console.log('Found listing:', listing.title)
 
     const currentPrice = listing.current_price || listing.start_price
     const priceText = currentPrice > 0 

@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, Edit, Eye, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getUserProfile } from '@/lib/auth'
-import { formatCurrency, formatDateTime } from '@/lib/utils'
+import { formatCurrency, formatDateTime, getEffectiveAuctionStatus, isAuctionEffectivelyLive } from '@/lib/utils'
 import { CountdownTimer } from '@/components/countdown-timer'
 
 async function MyListingsContent() {
@@ -39,31 +39,37 @@ async function MyListingsContent() {
     return <div>Error loading listings</div>
   }
 
-  // Group listings by status
+  // Group listings by effective status
   const draftListings = listings?.filter(l => l.status === 'draft') || []
-  const liveListings = listings?.filter(l => l.status === 'live') || []
-  const endedListings = listings?.filter(l => ['ended', 'sold', 'cancelled'].includes(l.status)) || []
+  const liveListings = listings?.filter(l => isAuctionEffectivelyLive(l.status, l.start_time, l.end_time)) || []
+  const endedListings = listings?.filter(l => {
+    const effectiveStatus = getEffectiveAuctionStatus(l.status, l.start_time, l.end_time)
+    return ['ended', 'sold', 'cancelled'].includes(effectiveStatus)
+  }) || []
 
-  const ListingCard = ({ listing }: { listing: any }) => (
-    <Card key={listing.id}>
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <h3 className="font-semibold">{listing.title}</h3>
-              <Badge
-                variant={
-                  listing.status === 'live'
-                    ? 'success'
-                    : listing.status === 'sold'
-                    ? 'default'
-                    : listing.status === 'draft'
-                    ? 'outline'
-                    : 'secondary'
-                }
-              >
-                {listing.status}
-              </Badge>
+  const ListingCard = ({ listing }: { listing: any }) => {
+    const effectiveStatus = getEffectiveAuctionStatus(listing.status, listing.start_time, listing.end_time)
+    
+    return (
+      <Card key={listing.id}>
+        <CardContent className="p-6">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="font-semibold">{listing.title}</h3>
+                <Badge
+                  variant={
+                    effectiveStatus === 'live'
+                      ? 'success'
+                      : effectiveStatus === 'sold'
+                      ? 'default'
+                      : effectiveStatus === 'draft'
+                      ? 'outline'
+                      : 'secondary'
+                  }
+                >
+                  {effectiveStatus}
+                </Badge>
               {listing.reserve_met && (
                 <Badge variant="secondary">Reserve Met</Badge>
               )}
@@ -81,15 +87,15 @@ async function MyListingsContent() {
                 <div>Buy Now: {formatCurrency(listing.buy_now_price)}</div>
               )}
               <div>Bids: {listing.bids?.length || 0}</div>
-              {listing.status === 'live' && (
+              {effectiveStatus === 'live' && (
                 <div className="flex items-center gap-2">
                   <span>Ends:</span>
                   <CountdownTimer endTime={listing.end_time} />
                 </div>
               )}
-              {listing.status !== 'live' && (
+              {effectiveStatus !== 'live' && (
                 <div>
-                  {listing.status === 'draft' ? 'Created' : 'Ended'}: {formatDateTime(listing.created_at)}
+                  {effectiveStatus === 'draft' ? 'Created' : 'Ended'}: {formatDateTime(listing.created_at)}
                 </div>
               )}
             </div>
@@ -102,7 +108,7 @@ async function MyListingsContent() {
               </Link>
             </Button>
             
-            {(listing.status === 'draft' || listing.status === 'scheduled') && (
+            {(effectiveStatus === 'draft' || effectiveStatus === 'scheduled') && (
               <Button variant="outline" size="sm" asChild>
                 <Link href={`/sell/${listing.id}/edit`}>
                   <Edit className="h-4 w-4" />
@@ -110,7 +116,7 @@ async function MyListingsContent() {
               </Button>
             )}
 
-            {listing.status === 'draft' && (
+            {effectiveStatus === 'draft' && (
               <Button variant="outline" size="sm">
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -119,7 +125,8 @@ async function MyListingsContent() {
         </div>
       </CardContent>
     </Card>
-  )
+    )
+  }
 
   return (
     <Tabs defaultValue="live" className="w-full">

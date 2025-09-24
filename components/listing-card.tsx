@@ -6,7 +6,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Heart, Clock, Gavel, MapPin } from 'lucide-react'
-import { formatCurrency, formatRelativeTime, isAuctionEndingSoon, getImageUrl } from '@/lib/utils'
+import { formatCurrency, formatRelativeTime, isAuctionEndingSoon, getImageUrl, getEffectiveAuctionStatus, isAuctionEffectivelyLive } from '@/lib/utils'
 import { CountdownTimer } from '@/components/countdown-timer'
 
 interface ListingCardProps {
@@ -34,6 +34,7 @@ interface ListingCardProps {
 }
 
 export function ListingCard({ listing }: ListingCardProps) {
+  const effectiveStatus = getEffectiveAuctionStatus(listing.status, listing.start_time, listing.end_time)
   const isEndingSoon = isAuctionEndingSoon(listing.end_time)
   const hasImage = listing.cover_image_url
   const imageUrl = hasImage ? getImageUrl(listing.cover_image_url) : '/placeholder-image.jpg'
@@ -52,9 +53,19 @@ export function ListingCard({ listing }: ListingCardProps) {
           
           {/* Status badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
-            {listing.status === 'live' && (
+            {effectiveStatus === 'live' && (
               <Badge variant="success" className="text-xs">
                 Live
+              </Badge>
+            )}
+            {effectiveStatus === 'ended' && (
+              <Badge variant="secondary" className="text-xs">
+                Ended
+              </Badge>
+            )}
+            {effectiveStatus === 'sold' && (
+              <Badge variant="default" className="text-xs">
+                Sold
               </Badge>
             )}
             {listing.reserve_met && (
@@ -67,7 +78,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                 Buy Now
               </Badge>
             )}
-            {isEndingSoon && listing.status === 'live' && (
+            {isEndingSoon && effectiveStatus === 'live' && (
               <Badge variant="destructive" className="text-xs pulse-red">
                 Ending Soon
               </Badge>
@@ -141,10 +152,16 @@ export function ListingCard({ listing }: ListingCardProps) {
               <span>{listing.location}</span>
             </div>
           </div>
-          {listing.status === 'live' && (
+          {effectiveStatus === 'live' && (
             <div className="flex items-center gap-1">
               <Gavel className="h-3 w-3" />
               <span>Bid now</span>
+            </div>
+          )}
+          {effectiveStatus === 'ended' && (
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              <span>Auction ended</span>
             </div>
           )}
         </div>

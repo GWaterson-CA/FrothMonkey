@@ -139,7 +139,7 @@ export function ListingsManagement() {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-gray-500">Owner:</span>{' '}
-                      {listing.owner?.full_name || listing.owner?.username || 'Unknown'}
+                      @{listing.owner?.username || 'Unknown'}
                     </div>
                     <div>
                       <span className="text-gray-500">Current Price:</span>{' '}

@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/server'
 import { getUserProfile } from '@/lib/auth'
-import { formatCurrency, formatDateTime, getImageUrl } from '@/lib/utils'
+import { formatCurrency, formatDateTime, getImageUrl, getEffectiveAuctionStatus, isAuctionEffectivelyLive } from '@/lib/utils'
 import { CountdownTimer } from '@/components/countdown-timer'
 import { BidHistory } from '@/components/bid-history'
 import { BidForm } from '@/components/bid-form'
@@ -73,6 +73,9 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
   const listingUrl = `${baseUrl}/listing/${params.id}`
   const ogImageUrl = `${baseUrl}/api/og/listing/${params.id}`
   
+  console.log('Generating metadata for listing:', params.id)
+  console.log('OG Image URL:', ogImageUrl)
+  
   // Generate A/B CTA variant (deterministic based on listing ID)
   const ctaVariants = [
     'Bid now before it\'s too late!',
@@ -104,10 +107,13 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
           width: 1200,
           height: 630,
           alt: listing.title,
+          type: 'image/png',
         },
       ],
       locale: 'en_US',
       type: 'website',
+      publishedTime: listing.created_at,
+      modifiedTime: listing.updated_at,
     },
     twitter: {
       card: 'summary_large_image',
@@ -184,7 +190,8 @@ export default async function ListingPage({ params }: ListingPageProps) {
     .limit(20)
 
   const isOwner = profile?.id === listing.owner_id
-  const canBid = profile && !isOwner && listing.status === 'live'
+  const effectiveStatus = getEffectiveAuctionStatus(listing.status, listing.start_time, listing.end_time)
+  const canBid = profile && !isOwner && isAuctionEffectivelyLive(listing.status, listing.start_time, listing.end_time)
 
   // Fetch seller rating
   let sellerRating = null
@@ -222,9 +229,9 @@ export default async function ListingPage({ params }: ListingPageProps) {
                       <Badge variant="outline">{listing.categories.name}</Badge>
                     )}
                     <Badge 
-                      variant={listing.status === 'live' ? 'success' : 'secondary'}
+                      variant={effectiveStatus === 'live' ? 'success' : effectiveStatus === 'sold' ? 'default' : 'secondary'}
                     >
-                      {listing.status}
+                      {effectiveStatus}
                     </Badge>
                     {listing.reserve_met && (
                       <Badge variant="secondary">Reserve Met</Badge>
@@ -341,12 +348,19 @@ export default async function ListingPage({ params }: ListingPageProps) {
                     )}
                   </div>
 
-                  {listing.status === 'live' && (
+                  {effectiveStatus === 'live' && (
                     <div className="pt-2 border-t">
                       <div className="text-sm text-muted-foreground mb-2">
                         Time remaining:
                       </div>
                       <CountdownTimer endTime={listing.end_time} />
+                    </div>
+                  )}
+                  {effectiveStatus === 'ended' && (
+                    <div className="pt-2 border-t">
+                      <div className="text-sm text-muted-foreground">
+                        Auction ended: {formatDateTime(listing.end_time)}
+                      </div>
                     </div>
                   )}
                 </CardContent>

@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CreditCard, Trophy, X, Eye } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { requireProfile } from '@/lib/auth'
-import { formatCurrency, formatDateTime } from '@/lib/utils'
+import { formatCurrency, formatDateTime, getEffectiveAuctionStatus, isAuctionEffectivelyLive } from '@/lib/utils'
 import { CountdownTimer } from '@/components/countdown-timer'
 
 async function MyBidsContent() {
@@ -124,7 +124,7 @@ async function MyBidsContent() {
               <div>Current price: {formatCurrency(bid.listings.current_price)}</div>
               <div>Total bids: {bid.totalBids}</div>
               
-              {bid.listings.status === 'live' ? (
+              {isAuctionEffectivelyLive(bid.listings.status, bid.listings.start_time, bid.listings.end_time) ? (
                 <div className="flex items-center gap-2">
                   <span>Ends:</span>
                   <CountdownTimer endTime={bid.listings.end_time} />

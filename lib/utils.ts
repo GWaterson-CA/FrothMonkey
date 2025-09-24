@@ -61,6 +61,39 @@ export function isAuctionEndingSoon(endTime: string | Date, hoursThreshold: numb
   return isBefore(now, end) && isAfter(threshold, end)
 }
 
+// Get the effective auction status considering both database status and time
+export function getEffectiveAuctionStatus(
+  status: string, 
+  startTime: string | Date, 
+  endTime: string | Date
+): string {
+  const now = new Date()
+  const start = typeof startTime === 'string' ? new Date(startTime) : startTime
+  const end = typeof endTime === 'string' ? new Date(endTime) : endTime
+  
+  // If the auction has ended by time, it should be considered ended regardless of database status
+  if (isAfter(now, end)) {
+    return 'ended'
+  }
+  
+  // If the auction hasn't started yet, it's scheduled
+  if (isBefore(now, start)) {
+    return 'scheduled'
+  }
+  
+  // Otherwise, use the database status
+  return status
+}
+
+// Check if auction is effectively live (considering time)
+export function isAuctionEffectivelyLive(
+  status: string, 
+  startTime: string | Date, 
+  endTime: string | Date
+): boolean {
+  return getEffectiveAuctionStatus(status, startTime, endTime) === 'live'
+}
+
 // Slug generation
 export function generateSlug(text: string): string {
   return text

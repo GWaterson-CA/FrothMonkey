@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Heart, Eye, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getUserProfile } from '@/lib/auth'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, getEffectiveAuctionStatus, isAuctionEffectivelyLive } from '@/lib/utils'
 import { CountdownTimer } from '@/components/countdown-timer'
 import { RemoveFromWatchlistButton } from '@/components/account/remove-from-watchlist-button'
 
@@ -73,7 +73,8 @@ async function WatchlistContent() {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {watchlistItems.map((item) => {
         const listing = item.listings
-        const isEndingSoon = listing.status === 'live' && 
+        const effectiveStatus = getEffectiveAuctionStatus(listing.status, listing.start_time, listing.end_time)
+        const isEndingSoon = effectiveStatus === 'live' && 
           new Date(listing.end_time).getTime() - new Date().getTime() < 2 * 60 * 60 * 1000 // 2 hours
 
         return (
@@ -86,10 +87,10 @@ async function WatchlistContent() {
                 {/* Status badges */}
                 <div className="absolute top-2 left-2 flex flex-col gap-1">
                   <Badge 
-                    variant={listing.status === 'live' ? 'success' : 'secondary'}
+                    variant={effectiveStatus === 'live' ? 'success' : effectiveStatus === 'sold' ? 'default' : 'secondary'}
                     className="text-xs"
                   >
-                    {listing.status}
+                    {effectiveStatus}
                   </Badge>
                   {listing.reserve_met && (
                     <Badge variant="secondary" className="text-xs">
@@ -146,10 +147,16 @@ async function WatchlistContent() {
                     <span>{listing.categories?.name || 'Unknown'}</span>
                   </div>
 
-                  {listing.status === 'live' && (
+                  {effectiveStatus === 'live' && (
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Time left:</span>
                       <CountdownTimer endTime={listing.end_time} />
+                    </div>
+                  )}
+                  {effectiveStatus === 'ended' && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Status:</span>
+                      <span className="text-muted-foreground">Auction ended</span>
                     </div>
                   )}
 
@@ -167,7 +174,7 @@ async function WatchlistContent() {
                     </Link>
                   </Button>
                   
-                  {listing.status === 'live' && (
+                  {effectiveStatus === 'live' && (
                     <Button size="sm" variant="outline" className="flex-1" asChild>
                       <Link href={`/listing/${listing.id}#bid-form`}>
                         Bid Now
