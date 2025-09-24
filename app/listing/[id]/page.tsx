@@ -43,7 +43,23 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
   
   const { data: listing } = await supabase
     .from('listings')
-    .select('title, description')
+    .select(`
+      title, 
+      description, 
+      current_price, 
+      start_price, 
+      end_time, 
+      status, 
+      cover_image_url,
+      location,
+      categories (
+        name,
+        slug
+      ),
+      profiles!listings_owner_id_fkey (
+        username
+      )
+    `)
     .eq('id', params.id)
     .single()
 
@@ -53,9 +69,65 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
     }
   }
 
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://frothmonkey.com'
+  const listingUrl = `${baseUrl}/listing/${params.id}`
+  const ogImageUrl = `${baseUrl}/api/og/listing/${params.id}`
+  
+  // Generate A/B CTA variant (deterministic based on listing ID)
+  const ctaVariants = [
+    'Bid now before it\'s too late!',
+    'Don\'t miss out on this auction!',
+    'Place your bid today!',
+    'Join the bidding now!'
+  ]
+  const ctaIndex = parseInt(params.id.slice(-1), 16) % ctaVariants.length
+  const ctaText = ctaVariants[ctaIndex]
+  
+  const currentPrice = listing.current_price || listing.start_price
+  const priceText = currentPrice > 0 ? `Current bid: $${currentPrice.toLocaleString()}` : `Starting at $${listing.start_price.toLocaleString()}`
+  
+  const description = listing.description 
+    ? `${listing.description.substring(0, 120)}... ${ctaText}`
+    : `Auction for ${listing.title} in ${listing.location}. ${priceText}. ${ctaText}`
+
   return {
     title: `${listing.title} | FrothMonkey`,
-    description: listing.description || `Auction for ${listing.title}`,
+    description,
+    openGraph: {
+      title: `${listing.title} | FrothMonkey`,
+      description,
+      url: listingUrl,
+      siteName: 'FrothMonkey',
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: listing.title,
+        },
+      ],
+      locale: 'en_US',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${listing.title} | FrothMonkey`,
+      description,
+      images: [ogImageUrl],
+      creator: '@frothmonkey',
+      site: '@frothmonkey',
+    },
+    alternates: {
+      canonical: listingUrl,
+    },
+    other: {
+      'auction:current_price': currentPrice.toString(),
+      'auction:start_price': listing.start_price.toString(),
+      'auction:end_time': listing.end_time,
+      'auction:status': listing.status,
+      'auction:location': listing.location,
+      'auction:category': listing.categories?.name || '',
+    },
   }
 }
 

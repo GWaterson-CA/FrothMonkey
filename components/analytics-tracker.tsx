@@ -38,6 +38,17 @@ export function AnalyticsTracker({ listingId }: AnalyticsTrackerProps) {
     // Track page view
     const trackPageView = async () => {
       try {
+        // Extract UTM parameters and referrer from URL
+        const urlParams = new URLSearchParams(window.location.search)
+        const utmSource = urlParams.get('utm_source')
+        const utmMedium = urlParams.get('utm_medium')
+        const utmCampaign = urlParams.get('utm_campaign')
+        const utmTerm = urlParams.get('utm_term')
+        const utmContent = urlParams.get('utm_content')
+        
+        // Get referrer from document
+        const referrer = document.referrer || null
+
         await fetch('/api/analytics/page-view', {
           method: 'POST',
           headers: {
@@ -45,7 +56,13 @@ export function AnalyticsTracker({ listingId }: AnalyticsTrackerProps) {
           },
           body: JSON.stringify({
             path: pathname,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            utm_source: utmSource,
+            utm_medium: utmMedium,
+            utm_campaign: utmCampaign,
+            utm_term: utmTerm,
+            utm_content: utmContent,
+            referrer: referrer
           })
         })
       } catch (error) {

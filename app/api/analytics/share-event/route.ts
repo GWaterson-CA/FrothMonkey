@@ -4,10 +4,10 @@ import { getUser } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
-    const { path, utm_source, utm_medium, utm_campaign, utm_term, utm_content, referrer } = await request.json()
+    const { platform, listingId, timestamp } = await request.json()
 
-    if (!path) {
-      return NextResponse.json({ error: 'Path required' }, { status: 400 })
+    if (!platform || !listingId) {
+      return NextResponse.json({ error: 'Platform and listing ID required' }, { status: 400 })
     }
 
     // Get user ID if authenticated (optional for tracking)
@@ -27,27 +27,22 @@ export async function POST(request: NextRequest) {
     const supabase = createClient()
 
     const { error } = await supabase
-      .rpc('record_page_view', {
-        page_path: path,
+      .rpc('record_share_event', {
+        platform_name: platform,
+        listing_uuid: listingId,
         user_uuid: userId,
         ip_addr: ipAddress,
-        user_agent_string: userAgent,
-        utm_source: utm_source || null,
-        utm_medium: utm_medium || null,
-        utm_campaign: utm_campaign || null,
-        utm_term: utm_term || null,
-        utm_content: utm_content || null,
-        referrer: referrer || null
+        user_agent_string: userAgent
       })
 
     if (error) {
-      console.error('Page view tracking error:', error)
-      return NextResponse.json({ error: 'Failed to track page view' }, { status: 500 })
+      console.error('Share event tracking error:', error)
+      return NextResponse.json({ error: 'Failed to track share event' }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Page view API error:', error)
+    console.error('Share event API error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
