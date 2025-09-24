@@ -11,7 +11,8 @@ import {
   Settings, 
   User,
   BarChart3,
-  Star
+  Star,
+  Bell
 } from 'lucide-react'
 
 const accountNavItems = [
@@ -39,6 +40,11 @@ const accountNavItems = [
     title: 'Reviews',
     href: '/account/reviews',
     icon: Star,
+  },
+  {
+    title: 'Notifications',
+    href: '/account/notifications',
+    icon: Bell,
   },
   {
     title: 'Settings',

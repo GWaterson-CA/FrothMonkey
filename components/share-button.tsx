@@ -14,6 +14,7 @@ import {
 interface ShareButtonProps {
   listingId: string
   title?: string
+  listingUrl?: string
   size?: 'default' | 'sm' | 'lg'
   variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'link' | 'destructive'
 }
@@ -21,6 +22,7 @@ interface ShareButtonProps {
 export function ShareButton({ 
   listingId, 
   title, 
+  listingUrl,
   size = 'sm', 
   variant = 'outline' 
 }: ShareButtonProps) {
@@ -38,13 +40,13 @@ export function ShareButton({
   const ctaText = ctaVariants[ctaIndex]
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://frothmonkey.com'
-  const listingUrl = `${baseUrl}/listing/${listingId}`
+  const finalListingUrl = listingUrl || `${baseUrl}/listing/${listingId}`
   const shareTitle = title ? `${title} - FrothMonkey` : 'Check out this auction on FrothMonkey'
   const shareText = `Check out this auction: ${title || 'Amazing item'} on FrothMonkey! ${ctaText}`
   
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(listingUrl)
+      await navigator.clipboard.writeText(finalListingUrl)
       setIsCopied(true)
       
       // Track share event
@@ -71,7 +73,7 @@ export function ShareButton({
     const shareData = {
       title: shareTitle,
       text: shareText,
-      url: listingUrl,
+      url: finalListingUrl,
     }
 
     try {
@@ -104,16 +106,16 @@ export function ShareButton({
     
     switch (platform) {
       case 'facebook':
-        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(listingUrl)}`
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(finalListingUrl)}`
         break
       case 'twitter':
-        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(listingUrl)}`
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(finalListingUrl)}`
         break
       case 'linkedin':
-        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(listingUrl)}`
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(finalListingUrl)}`
         break
       case 'whatsapp':
-        shareUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${listingUrl}`)}`
+        shareUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${finalListingUrl}`)}`
         break
     }
 

@@ -6,10 +6,12 @@ import { getUser, getUserProfile } from '@/lib/auth'
 import { UserNav } from '@/components/user-nav'
 import { SearchForm } from '@/components/search-form'
 import { createClient } from '@/lib/supabase/server'
+import { generateCategoryUrl } from '@/lib/url-utils'
 import type { Tables } from '@/lib/database.types'
 
 interface CategoryWithSubcategories extends Tables<'categories'> {
-  subcategories?: Tables<'categories'>[]
+  url?: string
+  subcategories?: (Tables<'categories'> & { url?: string })[]
 }
 
 export async function Header() {
@@ -32,11 +34,28 @@ export async function Header() {
     .not('parent_id', 'is', null)
     .order('sort_order')
   
-  // Group subcategories by parent
-  const categoriesWithSubs: CategoryWithSubcategories[] = topLevelCategories?.map(category => ({
-    ...category,
-    subcategories: subcategories?.filter(sub => sub.parent_id === category.id) || []
-  })) || []
+  // Group subcategories by parent and generate URLs
+  const categoriesWithSubs: CategoryWithSubcategories[] = await Promise.all(
+    (topLevelCategories || []).map(async (category) => {
+      const categorySubcategories = subcategories?.filter(sub => sub.parent_id === category.id) || []
+      
+      // Generate URLs for subcategories
+      const subcategoriesWithUrls = await Promise.all(
+        categorySubcategories.map(async (subcategory) => {
+          const url = await generateCategoryUrl(subcategory)
+          return { ...subcategory, url }
+        })
+      )
+      
+      const categoryUrl = await generateCategoryUrl(category)
+      
+      return {
+        ...category,
+        url: categoryUrl,
+        subcategories: subcategoriesWithUrls
+      }
+    })
+  )
 
   return (
     <>
@@ -120,7 +139,7 @@ export async function Header() {
             {categoriesWithSubs.map((category) => (
               <div key={category.id} className="relative group">
                 <Link
-                  href={`/category/${category.slug}`}
+                  href={category.url || `/category/${category.slug}`}
                   className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-200 whitespace-nowrap py-3 px-1 rounded-md hover:bg-muted/50"
                 >
                   {category.name}
@@ -147,7 +166,7 @@ export async function Header() {
                     
                     <div className="relative py-4 max-h-[70vh] overflow-y-auto">
                       <Link
-                        href={`/category/${category.slug}`}
+                        href={category.url || `/category/${category.slug}`}
                         className="block px-6 py-3 text-sm font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-colors border-b border-gray-200/60 dark:border-gray-700/60 mb-2"
                       >
                         All {category.name}
@@ -156,7 +175,7 @@ export async function Header() {
                         {category.subcategories.map((subcategory) => (
                           <Link
                             key={subcategory.id}
-                            href={`/category/${subcategory.slug}`}
+                            href={subcategory.url || `/category/${subcategory.slug}`}
                             className="block px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/60 dark:hover:bg-gray-800/60 transition-all duration-150 rounded-none"
                           >
                             {subcategory.name}

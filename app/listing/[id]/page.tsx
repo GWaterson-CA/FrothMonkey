@@ -18,6 +18,8 @@ import { WatchlistToggleButton } from '@/components/account/watchlist-toggle-but
 import { ShareButton } from '@/components/share-button'
 import { ReportButton } from '@/components/report-button'
 import { AnalyticsTracker } from '@/components/analytics-tracker'
+import { ContactSellerButton } from '@/components/messaging/contact-seller-button'
+import { AuctionResults } from '@/components/auction-results'
 
 // Helper function to format payment method labels
 function formatPaymentMethod(method: string): string {
@@ -182,12 +184,16 @@ export default async function ListingPage({ params }: ListingPageProps) {
     .select(`
       *,
       profiles!bids_bidder_id_fkey (
+        id,
         username
       )
     `)
     .eq('listing_id', params.id)
     .order('created_at', { ascending: false })
     .limit(20)
+
+  // Get highest bid for auction results
+  const highestBid = bids && bids.length > 0 ? bids[0] : null
 
   const isOwner = profile?.id === listing.owner_id
   const effectiveStatus = getEffectiveAuctionStatus(listing.status, listing.start_time, listing.end_time)
@@ -252,6 +258,7 @@ export default async function ListingPage({ params }: ListingPageProps) {
                   <ShareButton 
                     listingId={listing.id}
                     title={listing.title}
+                    listingUrl={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://frothmonkey.com'}/listing/${listing.id}`}
                   />
                   <ReportButton 
                     listingId={listing.id}
@@ -376,6 +383,15 @@ export default async function ListingPage({ params }: ListingPageProps) {
                 />
               )}
 
+              {/* Auction Results - show for ended auctions */}
+              {effectiveStatus === 'ended' && (
+                <AuctionResults
+                  listing={listing}
+                  highestBid={highestBid}
+                  currentUserId={profile?.id}
+                />
+              )}
+
               {/* Seller Info */}
               <Card>
                 <CardHeader>
@@ -406,6 +422,17 @@ export default async function ListingPage({ params }: ListingPageProps) {
                       )}
                     </div>
                   </div>
+                  
+                  {/* Contact Seller Button - only show for ended auctions */}
+                  {effectiveStatus === 'ended' && (
+                    <div className="mt-4">
+                      <ContactSellerButton
+                        listingId={listing.id}
+                        sellerId={listing.owner_id}
+                        currentUserId={profile?.id}
+                      />
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 

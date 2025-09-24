@@ -127,3 +127,39 @@ export function isValidUsername(username: string): boolean {
   const usernameRegex = /^[a-zA-Z0-9_-]{3,24}$/
   return usernameRegex.test(username)
 }
+
+// URL generation helpers
+export function generateListingUrl(listing: {
+  id: string
+  categories?: {
+    slug: string
+    parent_id: string | null
+  } | null
+}): string {
+  if (!listing.categories) {
+    return `/listing/${listing.id}`
+  }
+  
+  // If it's a subcategory, we need to get the parent category
+  if (listing.categories.parent_id) {
+    // For now, we'll use a simplified approach
+    // In a real implementation, you'd need to fetch the parent category
+    return `/listing/${listing.id}`
+  }
+  
+  // Main category
+  return `/${listing.categories.slug}/${listing.id}`
+}
+
+export function generateCategoryUrl(category: {
+  slug: string
+  parent_id: string | null
+}): string {
+  if (category.parent_id) {
+    // For subcategories, we need the parent category slug
+    // This would need to be passed in or fetched
+    return `/category/${category.slug}`
+  }
+  
+  return `/${category.slug}`
+}

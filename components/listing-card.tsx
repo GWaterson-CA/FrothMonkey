@@ -31,17 +31,21 @@ interface ListingCardProps {
       username: string | null
     } | null
   }
+  listingUrl?: string
 }
 
-export function ListingCard({ listing }: ListingCardProps) {
+export function ListingCard({ listing, listingUrl }: ListingCardProps) {
   const effectiveStatus = getEffectiveAuctionStatus(listing.status, listing.start_time, listing.end_time)
   const isEndingSoon = isAuctionEndingSoon(listing.end_time)
   const hasImage = listing.cover_image_url
   const imageUrl = hasImage ? getImageUrl(listing.cover_image_url) : '/placeholder-image.jpg'
+  
+  // Use the provided URL or fall back to the old format
+  const href = listingUrl || `/listing/${listing.id}`
 
   return (
     <Card className="group hover:shadow-lg transition-shadow duration-200">
-      <Link href={`/listing/${listing.id}`}>
+      <Link href={href}>
         <div className="aspect-square relative overflow-hidden rounded-t-lg">
           <Image
             src={imageUrl}
@@ -101,7 +105,7 @@ export function ListingCard({ listing }: ListingCardProps) {
       </Link>
 
       <CardContent className="p-4">
-        <Link href={`/listing/${listing.id}`}>
+        <Link href={href}>
           <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
             {listing.title}
           </h3>

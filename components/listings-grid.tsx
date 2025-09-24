@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { ListingCard } from '@/components/listing-card'
+import { generateListingUrl } from '@/lib/url-utils'
 
 interface ListingsGridProps {
   searchParams: {
@@ -7,6 +8,10 @@ interface ListingsGridProps {
     category?: string
     sort?: string
     filter?: string
+    price_min?: string
+    price_max?: string
+    condition?: string
+    status?: string
   }
 }
 
@@ -49,6 +54,31 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
     }
   }
 
+  // Apply price filters
+  if (searchParams.price_min) {
+    const minPrice = parseFloat(searchParams.price_min)
+    if (!isNaN(minPrice)) {
+      query = query.gte('current_price', minPrice)
+    }
+  }
+  
+  if (searchParams.price_max) {
+    const maxPrice = parseFloat(searchParams.price_max)
+    if (!isNaN(maxPrice)) {
+      query = query.lte('current_price', maxPrice)
+    }
+  }
+
+  // Apply condition filter
+  if (searchParams.condition && searchParams.condition !== 'all') {
+    query = query.eq('condition', searchParams.condition)
+  }
+
+  // Apply status filter
+  if (searchParams.status && searchParams.status !== 'all') {
+    query = query.eq('status', searchParams.status)
+  }
+
   // Apply special filters
   if (searchParams.filter) {
     const now = new Date().toISOString()
@@ -59,18 +89,39 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
           .eq('status', 'live')
           .gte('end_time', now)
           .lte('end_time', new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString()) // Next 2 hours
-          .order('end_time', { ascending: true })
         break
-      case 'newly-listed':
-        query = query
-          .eq('status', 'live')
-          .order('created_at', { ascending: false })
+      case 'live':
+        query = query.eq('status', 'live')
         break
       case 'reserve-met':
         query = query
           .eq('status', 'live')
           .eq('reserve_met', true)
-          .order('end_time', { ascending: true })
+        break
+      case 'buy-now':
+        query = query.not('buy_now_price', 'is', null)
+        break
+    }
+  }
+
+  // Apply sorting
+  if (searchParams.sort) {
+    switch (searchParams.sort) {
+      case 'oldest':
+        query = query.order('created_at', { ascending: true })
+        break
+      case 'price-low':
+        query = query.order('current_price', { ascending: true })
+        break
+      case 'price-high':
+        query = query.order('current_price', { ascending: false })
+        break
+      case 'ending-soon':
+        query = query.order('end_time', { ascending: true })
+        break
+      case 'most-bids':
+        // This would require a join with bids table, for now use created_at
+        query = query.order('created_at', { ascending: false })
         break
       default:
         query = query.order('created_at', { ascending: false })
@@ -99,10 +150,25 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
     )
   }
 
+  // Generate URLs for all listings
+  const listingsWithUrls = await Promise.all(
+    listings.map(async (listing) => {
+      const listingUrl = await generateListingUrl({ 
+        id: listing.id, 
+        category_id: listing.category_id 
+      })
+      return { listing, listingUrl }
+    })
+  )
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {listings.map((listing) => (
-        <ListingCard key={listing.id} listing={listing} />
+      {listingsWithUrls.map(({ listing, listingUrl }) => (
+        <ListingCard 
+          key={listing.id} 
+          listing={listing} 
+          listingUrl={listingUrl}
+        />
       ))}
     </div>
   )
