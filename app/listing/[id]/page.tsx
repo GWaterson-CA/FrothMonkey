@@ -153,6 +153,7 @@ export default async function ListingPage({ params }: ListingPageProps) {
         slug
       ),
       profiles!listings_owner_id_fkey (
+        id,
         username,
         full_name,
         avatar_url,
@@ -166,6 +167,19 @@ export default async function ListingPage({ params }: ListingPageProps) {
     `)
     .eq('id', params.id)
     .single()
+
+  // If profiles data is missing, fetch it separately
+  if (listing && !listing.profiles) {
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('id, username, full_name, avatar_url, payment_preferences')
+      .eq('id', listing.owner_id)
+      .single()
+    
+    if (profileData) {
+      listing.profiles = profileData
+    }
+  }
 
   if (error || !listing) {
     notFound()
@@ -404,7 +418,7 @@ export default async function ListingPage({ params }: ListingPageProps) {
                     </div>
                     <div className="flex-1">
                       <div className="font-semibold">
-                        @{listing.profiles?.username || 'unknown'}
+                        @{listing.profiles?.username || 'Unknown'}
                       </div>
                       <div className="text-sm text-muted-foreground mb-1">
                         Seller

@@ -46,6 +46,12 @@ async function getCategoryFromSlug(slug: string[]) {
           name,
           slug,
           parent_id
+        ),
+        profiles!listings_owner_id_fkey (
+          id,
+          username,
+          full_name,
+          avatar_url
         )
       `)
       .eq('id', slug[0])
@@ -84,6 +90,12 @@ async function getCategoryFromSlug(slug: string[]) {
             name,
             slug,
             parent_id
+          ),
+          profiles!listings_owner_id_fkey (
+            id,
+            username,
+            full_name,
+            avatar_url
           )
         `)
         .eq('id', slug[1])
@@ -120,6 +132,12 @@ async function getCategoryFromSlug(slug: string[]) {
               name,
               slug,
               parent_id
+            ),
+            profiles!listings_owner_id_fkey (
+              id,
+              username,
+              full_name,
+              avatar_url
             )
           `)
           .eq('id', slug[2])
@@ -447,7 +465,7 @@ export default async function SlugPage({ params, searchParams }: SlugPageProps) 
                       </div>
                       <div className="flex-1">
                         <div className="font-semibold">
-                          @{listing.profiles?.username || 'unknown'}
+                          @{listing.profiles?.username || 'Unknown'}
                         </div>
                         <div className="text-sm text-muted-foreground mb-1">
                           Seller
