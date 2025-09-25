@@ -108,7 +108,7 @@ async function MyListingsContent() {
               </Link>
             </Button>
             
-            {(effectiveStatus === 'draft' || effectiveStatus === 'scheduled') && (
+            {(effectiveStatus === 'draft' || effectiveStatus === 'scheduled' || effectiveStatus === 'live') && (
               <Button variant="outline" size="sm" asChild>
                 <Link href={`/sell/${listing.id}/edit`}>
                   <Edit className="h-4 w-4" />

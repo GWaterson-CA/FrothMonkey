@@ -60,6 +60,11 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
       ),
       profiles!listings_owner_id_fkey (
         username
+      ),
+      listing_images (
+        id,
+        path,
+        sort_order
       )
     `)
     .eq('id', params.id)

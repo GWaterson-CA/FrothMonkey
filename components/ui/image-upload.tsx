@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/components/ui/use-toast'
-import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react'
+import { Upload, X, Image as ImageIcon, Loader2, GripVertical } from 'lucide-react'
 import Image from 'next/image'
 import imageCompression from 'browser-image-compression'
 
@@ -16,6 +16,7 @@ interface ImageUploadProps {
   onImagesChange?: (images: UploadedImage[]) => void
   onCreateDraft?: () => Promise<string>
   disabled?: boolean
+  initialImages?: UploadedImage[]
 }
 
 export interface UploadedImage {
@@ -27,16 +28,161 @@ export interface UploadedImage {
   error?: string
 }
 
+// Simple Image Item Component with HTML5 drag and drop
+function ImageItem({ 
+  image, 
+  index, 
+  disabled, 
+  onRemove,
+  onMoveImage
+}: { 
+  image: UploadedImage
+  index: number
+  disabled: boolean
+  onRemove: (id: string) => void
+  onMoveImage: (dragIndex: number, hoverIndex: number) => void
+}) {
+  const [isDragging, setIsDragging] = useState(false)
+
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData('text/plain', index.toString())
+    setIsDragging(true)
+  }
+
+  const handleDragEnd = () => {
+    setIsDragging(false)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    const dragIndex = parseInt(e.dataTransfer.getData('text/plain'))
+    if (dragIndex !== index) {
+      onMoveImage(dragIndex, index)
+    }
+  }
+
+  return (
+    <Card 
+      className={`relative group ${isDragging ? 'opacity-50' : ''}`}
+      draggable={!disabled}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      <CardContent className="p-2">
+        <div className="aspect-square relative bg-muted rounded-lg overflow-hidden">
+          <Image
+            src={image.url}
+            alt={`Upload ${index + 1}`}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+          />
+          
+          {/* Loading overlay */}
+          {image.isUploading && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+              <Loader2 className="h-6 w-6 text-white animate-spin" />
+            </div>
+          )}
+
+          {/* Error overlay */}
+          {image.error && (
+            <div className="absolute inset-0 bg-red-500/50 flex items-center justify-center">
+              <span className="text-white text-xs">Failed</span>
+            </div>
+          )}
+
+          {/* Drag handle */}
+          {!disabled && (
+            <div
+              className="absolute top-1 left-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing bg-secondary/80 rounded flex items-center justify-center"
+              title="Drag to reorder"
+            >
+              <GripVertical className="h-3 w-3" />
+            </div>
+          )}
+
+          {/* Remove button */}
+          {!disabled && (
+            <Button
+              type="button"
+              variant="destructive"
+              size="icon"
+              className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => onRemove(image.id)}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+
+          {/* Cover image indicator */}
+          {index === 0 && (
+            <Badge 
+              variant="secondary" 
+              className="absolute bottom-1 left-1 text-xs"
+            >
+              Cover
+            </Badge>
+          )}
+        </div>
+
+        {/* Image info */}
+        <div className="mt-2 text-xs text-muted-foreground">
+          {image.file && (
+            <div>
+              <div>{image.file.name}</div>
+              <div>{(image.file.size / 1024).toFixed(1)} KB</div>
+            </div>
+          )}
+          {image.isUploading && (
+            <div className="text-primary">Uploading...</div>
+          )}
+          {image.error && (
+            <div className="text-destructive">{image.error}</div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export function ImageUpload({ 
   listingId, 
   maxImages = 10, 
   onImagesChange,
   onCreateDraft,
-  disabled = false 
+  disabled = false,
+  initialImages = []
 }: ImageUploadProps) {
-  const [images, setImages] = useState<UploadedImage[]>([])
+  const [images, setImages] = useState<UploadedImage[]>(initialImages)
   const [isUploading, setIsUploading] = useState(false)
   const { toast } = useToast()
+
+  // Update images when initialImages prop changes
+  useEffect(() => {
+    setImages(initialImages)
+  }, [initialImages])
+
+  // Handle image reordering with simple array manipulation
+  const handleMoveImage = (dragIndex: number, hoverIndex: number) => {
+    setImages((prevImages) => {
+      const newImages = [...prevImages]
+      const draggedImage = newImages[dragIndex]
+      newImages.splice(dragIndex, 1)
+      newImages.splice(hoverIndex, 0, draggedImage)
+      
+      // Notify parent component of the change
+      onImagesChange?.(newImages)
+      
+      return newImages
+    })
+  }
 
   // Image compression options for development (low resolution)
   const compressionOptions = {
@@ -335,76 +481,18 @@ export function ImageUpload({
         </CardContent>
       </Card>
 
-      {/* Image Preview Grid */}
+      {/* Image Preview Grid with Drag and Drop */}
       {images.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {images.map((image, index) => (
-            <Card key={image.id} className="relative group">
-              <CardContent className="p-2">
-                <div className="aspect-square relative bg-muted rounded-lg overflow-hidden">
-                  <Image
-                    src={image.url}
-                    alt={`Upload ${index + 1}`}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                  />
-                  
-                  {/* Loading overlay */}
-                  {image.isUploading && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                      <Loader2 className="h-6 w-6 text-white animate-spin" />
-                    </div>
-                  )}
-
-                  {/* Error overlay */}
-                  {image.error && (
-                    <div className="absolute inset-0 bg-red-500/50 flex items-center justify-center">
-                      <span className="text-white text-xs">Failed</span>
-                    </div>
-                  )}
-
-                  {/* Remove button */}
-                  {!disabled && (
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => removeImage(image.id)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  )}
-
-                  {/* Cover image indicator */}
-                  {index === 0 && (
-                    <Badge 
-                      variant="secondary" 
-                      className="absolute bottom-1 left-1 text-xs"
-                    >
-                      Cover
-                    </Badge>
-                  )}
-                </div>
-
-                {/* Image info */}
-                <div className="mt-2 text-xs text-muted-foreground">
-                  {image.file && (
-                    <div>
-                      <div>{image.file.name}</div>
-                      <div>{(image.file.size / 1024).toFixed(1)} KB</div>
-                    </div>
-                  )}
-                  {image.isUploading && (
-                    <div className="text-primary">Uploading...</div>
-                  )}
-                  {image.error && (
-                    <div className="text-destructive">{image.error}</div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <ImageItem
+              key={image.id}
+              image={image}
+              index={index}
+              disabled={disabled}
+              onRemove={removeImage}
+              onMoveImage={handleMoveImage}
+            />
           ))}
         </div>
       )}
@@ -413,7 +501,7 @@ export function ImageUpload({
       <div className="text-sm text-muted-foreground space-y-1">
         <p>• First image will be used as the cover image</p>
         <p>• Images are automatically compressed for faster loading</p>
-        <p>• Drag to reorder images (coming soon)</p>
+        <p>• Drag images to reorder them (hover to see drag handle)</p>
         {images.length > 0 && (
           <p>• {images.length} of {maxImages} images uploaded</p>
         )}

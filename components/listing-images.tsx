@@ -31,7 +31,10 @@ export function ListingImages({ images, coverImage, title }: ListingImagesProps)
     (a.sort_order || 0) - (b.sort_order || 0)
   )
   
-  allImages.push(...sortedImages)
+  // Filter out duplicate images (avoid adding additional images that have the same path as cover image)
+  const uniqueAdditionalImages = sortedImages.filter(img => img.path !== coverImage)
+  
+  allImages.push(...uniqueAdditionalImages)
 
   if (allImages.length === 0) {
     return (

@@ -228,19 +228,29 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
       const finalListingId = listing.id || currentListingId
 
       // Save additional images to listing_images table
-      if (images.length > 1) {
-        // First, delete existing additional images
-        await supabase
-          .from('listing_images')
-          .delete()
-          .eq('listing_id', finalListingId)
+      const coverImagePath = images.length > 0 ? images[0].path : null
+      
+      // First, delete existing additional images
+      await supabase
+        .from('listing_images')
+        .delete()
+        .eq('listing_id', finalListingId)
 
-        // Insert new additional images
-        const imageInserts = images.slice(1).map((image, index) => ({
+      if (images.length > 0) {
+        // Insert all images except duplicates of the cover image
+        // Also remove duplicate paths within the array itself
+        const seenPaths = new Set()
+        const imageInserts = images.map((image, index) => ({
           listing_id: finalListingId,
           path: image.path!,
-          sort_order: index + 1,
-        })).filter(img => img.path) // Only include successfully uploaded images
+          sort_order: index,
+        })).filter(img => {
+          if (!img.path) return false // Only include successfully uploaded images
+          if (img.path === coverImagePath) return false // Exclude images that match the cover image
+          if (seenPaths.has(img.path)) return false // Exclude duplicate paths
+          seenPaths.add(img.path)
+          return true
+        })
 
         if (imageInserts.length > 0) {
           const { error: imagesError } = await supabase
