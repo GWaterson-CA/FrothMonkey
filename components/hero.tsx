@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { Search, Gavel, TrendingUp, Shield } from 'lucide-react'
+import { Search, Gavel, TrendingUp, DollarSign, MapPin } from 'lucide-react'
 import Link from 'next/link'
 
 export function Hero() {
@@ -49,11 +49,11 @@ export function Hero() {
 
             <div className="flex flex-col items-center text-center space-y-4 p-6 rounded-lg bg-card">
               <div className="p-3 rounded-full bg-primary/10">
-                <Shield className="h-6 w-6 text-primary" />
+                <DollarSign className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold">Secure Trading</h3>
+              <h3 className="text-lg font-semibold">Free to Use</h3>
               <p className="text-sm text-muted-foreground">
-                Protected transactions with verified users and secure payments
+                No listing fees, no hidden costs - just pure auction excitement
               </p>
             </div>
 
@@ -69,11 +69,11 @@ export function Hero() {
 
             <div className="flex flex-col items-center text-center space-y-4 p-6 rounded-lg bg-card">
               <div className="p-3 rounded-full bg-primary/10">
-                <Search className="h-6 w-6 text-primary" />
+                <MapPin className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold">Easy Discovery</h3>
+              <h3 className="text-lg font-semibold">Exclusive to Squamish</h3>
               <p className="text-sm text-muted-foreground">
-                Advanced search and filtering to find exactly what you're looking for
+                Local marketplace connecting Squamish residents with unique finds
               </p>
             </div>
           </div>
