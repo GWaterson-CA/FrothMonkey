@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
 import { Gavel, Github, Heart } from 'lucide-react'
+import Image from 'next/image'
 
 export function Footer() {
   // Read version from package.json
@@ -21,9 +22,15 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo & Description */}
           <div className="md:col-span-2">
-            <div className="flex items-center space-x-2 mb-4">
-              <Gavel className="h-6 w-6" />
-              <span className="font-bold text-lg">FrothMonkey</span>
+            <div className="flex items-center mb-4">
+              <Image 
+                src="/FrothMonkey Logo Blue.png" 
+                alt="FrothMonkey Logo" 
+                width={96} 
+                height={96}
+                className="h-6 w-auto"
+                quality={100}
+              />
             </div>
             <p className="text-sm text-muted-foreground mb-4">
               A modern auction platform for buying and selling unique items. 

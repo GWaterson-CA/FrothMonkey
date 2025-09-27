@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Search, User, Plus, Heart, Gavel, ChevronDown, Shield } from 'lucide-react'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { getUser, getUserProfile } from '@/lib/auth'
@@ -43,11 +44,16 @@ export async function Header() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <Gavel className="h-6 w-6" />
-            <span className="hidden font-bold sm:inline-block">
-              FrothMonkey
-            </span>
+          <Link href="/" className="flex items-center">
+            <Image 
+              src="/FrothMonkey Logo Blue.png" 
+              alt="FrothMonkey Logo" 
+              width={128} 
+              height={128}
+              className="h-8 w-auto"
+              priority
+              quality={100}
+            />
           </Link>
 
           {/* Search */}
