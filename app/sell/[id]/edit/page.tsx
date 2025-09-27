@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getUserProfile } from '@/lib/auth'
 import { EditListingForm } from '@/components/sell/edit-listing-form'
+import { Header } from '@/components/header'
 
 interface EditListingPageProps {
   params: {
@@ -53,14 +54,17 @@ export default async function EditListingPage({ params }: EditListingPageProps) 
   // Check if listing can be edited (not ended, cancelled, or sold)
   if (['ended', 'cancelled', 'sold'].includes(listing.status)) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Cannot Edit Listing</h1>
-          <p className="text-muted-foreground">
-            This listing has {listing.status === 'ended' ? 'ended' : `been ${listing.status}`} and cannot be edited.
-          </p>
+      <>
+        <Header />
+        <div className="max-w-4xl mx-auto p-6">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Cannot Edit Listing</h1>
+            <p className="text-muted-foreground">
+              This listing has {listing.status === 'ended' ? 'ended' : `been ${listing.status}`} and cannot be edited.
+            </p>
+          </div>
         </div>
-      </div>
+      </>
     )
   }
 
@@ -73,20 +77,23 @@ export default async function EditListingPage({ params }: EditListingPageProps) 
   const hasBids = listing.bids && listing.bids.length > 0
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Edit Listing</h1>
-        <p className="text-muted-foreground mt-2">
-          Make changes to your listing. {hasBids ? 'Some restrictions apply since bidding has started.' : ''}
-        </p>
-      </div>
+    <>
+      <Header />
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Edit Listing</h1>
+          <p className="text-muted-foreground mt-2">
+            Make changes to your listing. {hasBids ? 'Some restrictions apply since bidding has started.' : ''}
+          </p>
+        </div>
 
-      <EditListingForm 
-        listing={listing}
-        categories={categories || []}
-        userId={profile.id}
-        hasBids={hasBids}
-      />
-    </div>
+        <EditListingForm 
+          listing={listing}
+          categories={categories || []}
+          userId={profile.id}
+          hasBids={hasBids}
+        />
+      </div>
+    </>
   )
 }
