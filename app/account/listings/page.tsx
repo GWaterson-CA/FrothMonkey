@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, Edit, Eye, Trash2 } from 'lucide-react'
+import { Plus, Edit, Eye, Trash2, Package } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getUserProfile } from '@/lib/auth'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
@@ -102,7 +102,7 @@ async function MyListingsContent() {
               </Link>
             </Button>
             
-            {(listing.status === 'draft' || listing.status === 'scheduled') && (
+            {(listing.status === 'draft' || listing.status === 'scheduled' || listing.status === 'live') && (
               <Button variant="outline" size="sm" asChild>
                 <Link href={`/sell/${listing.id}/edit`}>
                   <Edit className="h-4 w-4" />
