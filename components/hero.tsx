@@ -11,11 +11,11 @@ export function Hero() {
           <div className="flex flex-col justify-center space-y-8">
             <div className="space-y-4">
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl xl:text-6xl">
-                Discover Amazing{' '}
-                <span className="text-primary">Auctions</span>
+                Find it. Bid it.{' '}
+                <span className="block text-primary">Win it.</span>
               </h1>
               <p className="text-xl text-muted-foreground max-w-lg">
-                Buy and sell unique items on FrothMonkey. From collectibles to everyday essentials, find your next treasure.
+              List for free and bid in real time on FrothMonkey: fair prices, no haggling, great deals every day.
               </p>
             </div>
 
