@@ -104,7 +104,9 @@ export function ShareButton({
     
     switch (platform) {
       case 'facebook':
-        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(listingUrl)}`
+        // Use Facebook's Share Dialog which works better with mobile app
+        // The dialog.share endpoint is the official recommended method
+        shareUrl = `https://www.facebook.com/dialog/share?app_id=1234567890&display=popup&href=${encodeURIComponent(listingUrl)}&redirect_uri=${encodeURIComponent(listingUrl)}`
         break
       case 'twitter':
         shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(listingUrl)}`
@@ -113,13 +115,25 @@ export function ShareButton({
         shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(listingUrl)}`
         break
       case 'whatsapp':
-        shareUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${listingUrl}`)}`
+        // WhatsApp web for desktop, will open app on mobile
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+        if (isMobile) {
+          shareUrl = `whatsapp://send?text=${encodeURIComponent(`${shareText} ${listingUrl}`)}`
+        } else {
+          shareUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${listingUrl}`)}`
+        }
         break
     }
 
     if (shareUrl) {
       trackShareEvent(platform, listingId)
-      window.open(shareUrl, '_blank', 'width=600,height=400')
+      
+      // For mobile WhatsApp, use direct navigation instead of popup
+      if (platform === 'whatsapp' && shareUrl.startsWith('whatsapp://')) {
+        window.location.href = shareUrl
+      } else {
+        window.open(shareUrl, '_blank', 'width=600,height=400')
+      }
     }
   }
 

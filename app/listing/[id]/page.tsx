@@ -71,7 +71,19 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://frothmonkey.com'
   const listingUrl = `${baseUrl}/listing/${params.id}`
-  const ogImageUrl = `${baseUrl}/api/og/listing/${params.id}`
+  
+  // Use direct Supabase storage URL for better Facebook compatibility
+  // Facebook's crawler prefers static, directly accessible images over dynamic generation
+  let ogImageUrl = `${baseUrl}/FrothMonkey Logo Blue.png` // Fallback to logo
+  if (listing.cover_image_url) {
+    if (listing.cover_image_url.startsWith('http')) {
+      ogImageUrl = listing.cover_image_url
+    } else {
+      // Construct full Supabase storage URL
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ysoxcftclnlmvxuopdun.supabase.co'
+      ogImageUrl = `${supabaseUrl}/storage/v1/object/public/listing-images/${listing.cover_image_url}`
+    }
+  }
   
   // Generate A/B CTA variant (deterministic based on listing ID)
   const ctaVariants = [
@@ -93,6 +105,7 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
   return {
     title: `${listing.title} | FrothMonkey`,
     description,
+    metadataBase: new URL(baseUrl),
     openGraph: {
       title: `${listing.title} | FrothMonkey`,
       description,
@@ -101,9 +114,11 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
       images: [
         {
           url: ogImageUrl,
+          secureUrl: ogImageUrl,
           width: 1200,
           height: 630,
           alt: listing.title,
+          type: 'image/jpeg',
         },
       ],
       locale: 'en_US',
@@ -121,6 +136,17 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
       canonical: listingUrl,
     },
     other: {
+      // Facebook-specific tags
+      'fb:app_id': '1234567890', // TODO: Replace with actual Facebook App ID if you have one
+      
+      // App Links for mobile - helps open in Facebook app
+      'al:web:url': listingUrl,
+      'al:ios:url': listingUrl,
+      'al:ios:app_name': 'FrothMonkey',
+      'al:android:url': listingUrl,
+      'al:android:app_name': 'FrothMonkey',
+      
+      // Custom auction metadata
       'auction:current_price': currentPrice.toString(),
       'auction:start_price': listing.start_price.toString(),
       'auction:end_time': listing.end_time,
