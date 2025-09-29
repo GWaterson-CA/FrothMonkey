@@ -104,9 +104,9 @@ export function ShareButton({
     
     switch (platform) {
       case 'facebook':
-        // Use Facebook's Share Dialog which works better with mobile app
-        // The dialog.share endpoint is the official recommended method
-        shareUrl = `https://www.facebook.com/dialog/share?app_id=1234567890&display=popup&href=${encodeURIComponent(listingUrl)}&redirect_uri=${encodeURIComponent(listingUrl)}`
+        // Use Facebook's sharer - works without App ID
+        // For full Share Dialog features, you can register a Facebook App and add the app_id parameter
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(listingUrl)}`
         break
       case 'twitter':
         shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(listingUrl)}`

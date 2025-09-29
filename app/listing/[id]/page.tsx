@@ -137,7 +137,7 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
     },
     other: {
       // Facebook-specific tags
-      'fb:app_id': '1234567890', // TODO: Replace with actual Facebook App ID if you have one
+      // 'fb:app_id': 'YOUR_APP_ID', // Uncomment and add your Facebook App ID for advanced features
       
       // App Links for mobile - helps open in Facebook app
       'al:web:url': listingUrl,
