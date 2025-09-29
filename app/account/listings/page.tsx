@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, Edit, Eye, Trash2, Package } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getUserProfile } from '@/lib/auth'
-import { formatCurrency, formatDateTime } from '@/lib/utils'
+import { formatCurrency, formatDateTime, isAuctionEnded } from '@/lib/utils'
 import { CountdownTimer } from '@/components/countdown-timer'
 
 async function MyListingsContent() {
@@ -44,26 +44,40 @@ async function MyListingsContent() {
   const liveListings = listings?.filter(l => l.status === 'live') || []
   const endedListings = listings?.filter(l => ['ended', 'sold', 'cancelled'].includes(l.status)) || []
 
-  const ListingCard = ({ listing }: { listing: any }) => (
-    <Card key={listing.id}>
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <h3 className="font-semibold">{listing.title}</h3>
-              <Badge
-                variant={
-                  listing.status === 'live'
-                    ? 'success'
-                    : listing.status === 'sold'
-                    ? 'default'
-                    : listing.status === 'draft'
-                    ? 'outline'
-                    : 'secondary'
-                }
-              >
-                {listing.status}
-              </Badge>
+  const ListingCard = ({ listing }: { listing: any }) => {
+    const hasEnded = isAuctionEnded(listing.end_time)
+    const isActuallyLive = listing.status === 'live' && !hasEnded
+    
+    return (
+      <Card key={listing.id}>
+        <CardContent className="p-6">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="font-semibold">{listing.title}</h3>
+                {isActuallyLive && (
+                  <Badge variant="success">
+                    Live
+                  </Badge>
+                )}
+                {hasEnded && listing.status === 'live' && (
+                  <Badge variant="secondary">
+                    Auction ended
+                  </Badge>
+                )}
+                {!isActuallyLive && listing.status !== 'live' && (
+                  <Badge
+                    variant={
+                      listing.status === 'sold'
+                        ? 'default'
+                        : listing.status === 'draft'
+                        ? 'outline'
+                        : 'secondary'
+                    }
+                  >
+                    {listing.status}
+                  </Badge>
+                )}
               {listing.reserve_met && (
                 <Badge variant="secondary">Reserve Met</Badge>
               )}
@@ -81,13 +95,13 @@ async function MyListingsContent() {
                 <div>Buy Now: {formatCurrency(listing.buy_now_price)}</div>
               )}
               <div>Bids: {listing.bids?.length || 0}</div>
-              {listing.status === 'live' && (
+              {isActuallyLive && (
                 <div className="flex items-center gap-2">
                   <span>Ends:</span>
                   <CountdownTimer endTime={listing.end_time} />
                 </div>
               )}
-              {listing.status !== 'live' && (
+              {!isActuallyLive && (
                 <div>
                   {listing.status === 'draft' ? 'Created' : 'Ended'}: {formatDateTime(listing.created_at)}
                 </div>
@@ -119,7 +133,8 @@ async function MyListingsContent() {
         </div>
       </CardContent>
     </Card>
-  )
+    )
+  }
 
   return (
     <Tabs defaultValue="live" className="w-full">

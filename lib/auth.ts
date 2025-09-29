@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { cache } from 'react'
+import type { Json } from '@/lib/database.types'
 
 export const getUser = cache(async () => {
   const supabase = createClient()
@@ -24,6 +25,10 @@ export const getUserProfile = cache(async (): Promise<{
   is_admin: boolean | null;
   created_at: string | null;
   payment_preferences: string[] | null;
+  notification_preferences: Json | null;
+  bidding_agreement_accepted_at: string | null;
+  privacy_policy_accepted_at: string | null;
+  terms_accepted_at: string | null;
 } | null> => {
   const user = await getUser()
   if (!user) return null
@@ -35,7 +40,7 @@ export const getUserProfile = cache(async (): Promise<{
     // Simple query without complex joins to avoid recursion
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('id, username, full_name, avatar_url, is_admin, created_at, payment_preferences')
+      .select('id, username, full_name, avatar_url, is_admin, created_at, payment_preferences, notification_preferences, bidding_agreement_accepted_at, privacy_policy_accepted_at, terms_accepted_at')
       .eq('id', user.id)
       .limit(1)
       .maybeSingle()
@@ -53,6 +58,10 @@ export const getUserProfile = cache(async (): Promise<{
       is_admin: boolean | null;
       created_at: string | null;
       payment_preferences: string[] | null;
+      notification_preferences: Json | null;
+      bidding_agreement_accepted_at: string | null;
+      privacy_policy_accepted_at: string | null;
+      terms_accepted_at: string | null;
     } | null
   } catch (error) {
     console.error('Error:', error)
@@ -76,6 +85,10 @@ export async function requireProfile(): Promise<{
   is_admin: boolean | null;
   created_at: string | null;
   payment_preferences: string[] | null;
+  notification_preferences: Json | null;
+  bidding_agreement_accepted_at: string | null;
+  privacy_policy_accepted_at: string | null;
+  terms_accepted_at: string | null;
 }> {
   const profile = await getUserProfile()
   if (!profile) {

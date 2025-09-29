@@ -6,7 +6,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Heart, Clock, Gavel, MapPin } from 'lucide-react'
-import { formatCurrency, formatRelativeTime, isAuctionEndingSoon, getImageUrl } from '@/lib/utils'
+import { formatCurrency, formatRelativeTime, isAuctionEndingSoon, isAuctionEnded, getImageUrl } from '@/lib/utils'
 import { CountdownTimer } from '@/components/countdown-timer'
 
 interface ListingCardProps {
@@ -35,6 +35,8 @@ interface ListingCardProps {
 
 export function ListingCard({ listing }: ListingCardProps) {
   const isEndingSoon = isAuctionEndingSoon(listing.end_time)
+  const hasEnded = isAuctionEnded(listing.end_time)
+  const isActuallyLive = listing.status === 'live' && !hasEnded
   const hasImage = listing.cover_image_url
   const imageUrl = hasImage ? getImageUrl(listing.cover_image_url) : '/placeholder-image.jpg'
 
@@ -52,9 +54,14 @@ export function ListingCard({ listing }: ListingCardProps) {
           
           {/* Status badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
-            {listing.status === 'live' && (
+            {isActuallyLive && (
               <Badge variant="success" className="text-xs">
                 Live
+              </Badge>
+            )}
+            {hasEnded && listing.status === 'live' && (
+              <Badge variant="secondary" className="text-xs">
+                Auction ended
               </Badge>
             )}
             {listing.reserve_met && (
@@ -67,7 +74,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                 Buy Now
               </Badge>
             )}
-            {isEndingSoon && listing.status === 'live' && (
+            {isEndingSoon && isActuallyLive && (
               <Badge variant="destructive" className="text-xs pulse-red">
                 Ending Soon
               </Badge>
@@ -116,7 +123,7 @@ export function ListingCard({ listing }: ListingCardProps) {
 
         <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
           <Clock className="h-3 w-3" />
-          {listing.status === 'live' ? (
+          {isActuallyLive ? (
             <CountdownTimer endTime={listing.end_time} />
           ) : (
             <span>Ended {formatRelativeTime(listing.end_time)}</span>
@@ -141,7 +148,7 @@ export function ListingCard({ listing }: ListingCardProps) {
               <span>{listing.location}</span>
             </div>
           </div>
-          {listing.status === 'live' && (
+          {isActuallyLive && (
             <div className="flex items-center gap-1">
               <Gavel className="h-3 w-3" />
               <span>Bid now</span>

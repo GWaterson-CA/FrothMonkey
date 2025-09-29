@@ -14,10 +14,15 @@ import { User, Settings, Package, Heart, CreditCard, LogOut } from "lucide-react
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
-import type { Tables } from "@/lib/database.types"
-
 interface UserNavProps {
-  profile: Tables<'profiles'> | null
+  profile: {
+    id: string;
+    username: string | null;
+    full_name: string | null;
+    avatar_url: string | null;
+    is_admin: boolean | null;
+    [key: string]: any;
+  } | null
 }
 
 export function UserNav({ profile }: UserNavProps) {

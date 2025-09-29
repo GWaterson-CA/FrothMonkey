@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Heart, Eye, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getUserProfile } from '@/lib/auth'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, isAuctionEnded, isAuctionEndingSoon } from '@/lib/utils'
 import { CountdownTimer } from '@/components/countdown-timer'
 import { RemoveFromWatchlistButton } from '@/components/account/remove-from-watchlist-button'
 
@@ -73,8 +73,9 @@ async function WatchlistContent() {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {watchlistItems.map((item) => {
         const listing = item.listings
-        const isEndingSoon = listing.status === 'live' && 
-          new Date(listing.end_time).getTime() - new Date().getTime() < 2 * 60 * 60 * 1000 // 2 hours
+        const hasEnded = isAuctionEnded(listing.end_time)
+        const isActuallyLive = listing.status === 'live' && !hasEnded
+        const isEndingSoon = isAuctionEndingSoon(listing.end_time) && isActuallyLive
 
         return (
           <Card key={item.listing_id} className="group hover:shadow-lg transition-shadow">
@@ -85,12 +86,21 @@ async function WatchlistContent() {
                 
                 {/* Status badges */}
                 <div className="absolute top-2 left-2 flex flex-col gap-1">
-                  <Badge 
-                    variant={listing.status === 'live' ? 'success' : 'secondary'}
-                    className="text-xs"
-                  >
-                    {listing.status}
-                  </Badge>
+                  {isActuallyLive && (
+                    <Badge variant="success" className="text-xs">
+                      Live
+                    </Badge>
+                  )}
+                  {hasEnded && listing.status === 'live' && (
+                    <Badge variant="secondary" className="text-xs">
+                      Auction ended
+                    </Badge>
+                  )}
+                  {!isActuallyLive && listing.status !== 'live' && (
+                    <Badge variant="secondary" className="text-xs">
+                      {listing.status}
+                    </Badge>
+                  )}
                   {listing.reserve_met && (
                     <Badge variant="secondary" className="text-xs">
                       Reserve Met
@@ -146,10 +156,15 @@ async function WatchlistContent() {
                     <span>{listing.categories?.name || 'Unknown'}</span>
                   </div>
 
-                  {listing.status === 'live' && (
+                  {isActuallyLive ? (
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Time left:</span>
                       <CountdownTimer endTime={listing.end_time} />
+                    </div>
+                  ) : (
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Status:</span>
+                      <span>Ended</span>
                     </div>
                   )}
 
@@ -167,7 +182,7 @@ async function WatchlistContent() {
                     </Link>
                   </Button>
                   
-                  {listing.status === 'live' && (
+                  {isActuallyLive && (
                     <Button size="sm" variant="outline" className="flex-1" asChild>
                       <Link href={`/listing/${listing.id}#bid-form`}>
                         Bid Now

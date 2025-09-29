@@ -245,6 +245,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_admin: boolean | null
+          notification_preferences: Json | null
           payment_preferences: string[] | null
           privacy_policy_accepted_at: string | null
           terms_accepted_at: string | null
@@ -257,6 +258,7 @@ export type Database = {
           full_name?: string | null
           id: string
           is_admin?: boolean | null
+          notification_preferences?: Json | null
           payment_preferences?: string[] | null
           privacy_policy_accepted_at?: string | null
           terms_accepted_at?: string | null
@@ -269,6 +271,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_admin?: boolean | null
+          notification_preferences?: Json | null
           payment_preferences?: string[] | null
           privacy_policy_accepted_at?: string | null
           terms_accepted_at?: string | null
@@ -464,6 +467,67 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          id: string
+          user_id: string
+          type: string
+          title: string
+          message: string
+          listing_id: string | null
+          related_user_id: string | null
+          metadata: Json
+          read_at: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          type: string
+          title: string
+          message: string
+          listing_id?: string | null
+          related_user_id?: string | null
+          metadata?: Json
+          read_at?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          type?: string
+          title?: string
+          message?: string
+          listing_id?: string | null
+          related_user_id?: string | null
+          metadata?: Json
+          read_at?: string | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_related_user_id_fkey"
+            columns: ["related_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       watchlists: {
         Row: {
           created_at: string | null
@@ -510,6 +574,22 @@ export type Database = {
         }
         Returns: boolean
       }
+      create_notification: {
+        Args: {
+          p_user_id: string
+          p_type: string
+          p_title: string
+          p_message: string
+          p_listing_id?: string
+          p_related_user_id?: string
+          p_metadata?: Json
+        }
+        Returns: string
+      }
+      create_time_warning_notifications: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       get_unanswered_questions_count: {
         Args: {
           listing_uuid: string
@@ -551,6 +631,10 @@ export type Database = {
       schedule_auction_finalization: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      schedule_time_notifications: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
     }
     Enums: {

@@ -18,8 +18,9 @@ export async function POST(request: NextRequest) {
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
+      console.error('Authentication failed in place-bid:', authError)
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: 'Authentication required. Please log in and try again.' },
         { status: 401 }
       )
     }
@@ -31,7 +32,15 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    if (profileError || !profile?.bidding_agreement_accepted_at) {
+    if (profileError) {
+      console.error('Profile fetch error in place-bid:', profileError)
+      return NextResponse.json(
+        { error: 'Unable to verify user profile. Please try again.' },
+        { status: 500 }
+      )
+    }
+    
+    if (!profile?.bidding_agreement_accepted_at) {
       return NextResponse.json(
         { error: 'You must accept the bidding agreement before placing bids' },
         { status: 403 }
@@ -58,53 +67,45 @@ export async function POST(request: NextRequest) {
     bidAttempts.set(rateLimitKey, { count: 1, lastAttempt: now })
 
     // Call the place_bid SQL function
-    // Try with new signature first, fallback to old signature for backward compatibility
-    let data, error
-    
-    try {
-      // Try new function signature with is_buy_now parameter
-      const result = await supabase.rpc('place_bid', {
-        listing_id: listingId,
-        bid_amount: amount,
-        bidder: user.id,
-        is_buy_now: isBuyNow,
-      })
-      data = result.data
-      error = result.error
-    } catch (newSignatureError) {
-      // If new signature fails, try old signature (for backward compatibility)
-      console.log('New signature failed, trying old signature:', newSignatureError)
+    // For Buy Now, handle logic in API since database function may not support it
+    if (isBuyNow) {
+      // Get listing info to check if Buy Now is available
+      const { data: listing } = await supabase
+        .from('listings')
+        .select('buy_now_enabled, buy_now_price, reserve_met')
+        .eq('id', listingId)
+        .single()
       
-      // For old signature, handle Buy Now logic in API instead of database
-      if (isBuyNow) {
-        // Get listing info to check if Buy Now is available
-        const { data: listing } = await supabase
-          .from('listings')
-          .select('buy_now_enabled, buy_now_price, reserve_met')
-          .eq('id', listingId)
-          .single()
-        
-        if (listing?.reserve_met) {
-          return NextResponse.json(
-            { error: 'Buy Now is no longer available - reserve price has been reached' },
-            { status: 400 }
-          )
-        }
+      if (listing?.reserve_met) {
+        return NextResponse.json(
+          { error: 'Buy Now is no longer available - reserve price has been reached' },
+          { status: 400 }
+        )
       }
-      
-      const result = await supabase.rpc('place_bid', {
-        listing_id: listingId,
-        bid_amount: amount,
-        bidder: user.id,
-      })
-      data = result.data
-      error = result.error
     }
+    
+    // Use the standard 3-parameter function (most reliable)
+    const { data, error } = await supabase.rpc('place_bid', {
+      listing_id: listingId,
+      bid_amount: amount,
+      bidder: user.id,
+    })
 
     if (error) {
-      console.error('Database error placing bid:', error)
+      console.error('Database error placing bid:', {
+        error,
+        listingId,
+        amount,
+        userId: user.id,
+        errorMessage: error.message,
+        errorCode: error.code,
+        errorDetails: error.details
+      })
       return NextResponse.json(
-        { error: 'Failed to place bid' },
+        { 
+          error: 'Failed to place bid',
+          details: error.message || 'Database error occurred'
+        },
         { status: 500 }
       )
     }

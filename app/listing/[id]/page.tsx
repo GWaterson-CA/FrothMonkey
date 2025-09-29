@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/server'
 import { getUserProfile } from '@/lib/auth'
-import { formatCurrency, formatDateTime, getImageUrl } from '@/lib/utils'
+import { formatCurrency, formatDateTime, getImageUrl, isAuctionEnded } from '@/lib/utils'
 import { CountdownTimer } from '@/components/countdown-timer'
 import { BidHistory } from '@/components/bid-history'
 import { BidForm } from '@/components/bid-form'
@@ -184,7 +184,9 @@ export default async function ListingPage({ params }: ListingPageProps) {
     .limit(20)
 
   const isOwner = profile?.id === listing.owner_id
-  const canBid = profile && !isOwner && listing.status === 'live'
+  const hasEnded = isAuctionEnded(listing.end_time)
+  const isActuallyLive = listing.status === 'live' && !hasEnded
+  const canBid = profile && !isOwner && isActuallyLive
 
   // Fetch seller rating
   let sellerRating = null
@@ -221,11 +223,21 @@ export default async function ListingPage({ params }: ListingPageProps) {
                     {listing.categories && (
                       <Badge variant="outline">{listing.categories.name}</Badge>
                     )}
-                    <Badge 
-                      variant={listing.status === 'live' ? 'success' : 'secondary'}
-                    >
-                      {listing.status}
-                    </Badge>
+                    {isActuallyLive && (
+                      <Badge variant="success">
+                        Live
+                      </Badge>
+                    )}
+                    {hasEnded && listing.status === 'live' && (
+                      <Badge variant="secondary">
+                        Auction ended
+                      </Badge>
+                    )}
+                    {!isActuallyLive && listing.status !== 'live' && (
+                      <Badge variant="secondary">
+                        {listing.status}
+                      </Badge>
+                    )}
                     {listing.reserve_met && (
                       <Badge variant="secondary">Reserve Met</Badge>
                     )}
@@ -341,7 +353,7 @@ export default async function ListingPage({ params }: ListingPageProps) {
                     )}
                   </div>
 
-                  {listing.status === 'live' && (
+                  {isActuallyLive && (
                     <div className="pt-2 border-t">
                       <div className="text-sm text-muted-foreground mb-2">
                         Time remaining:

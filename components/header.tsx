@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { getUser, getUserProfile } from '@/lib/auth'
 import { UserNav } from '@/components/user-nav'
 import { SearchForm } from '@/components/search-form'
+import { NotificationsDropdown } from '@/components/notifications/notifications-dropdown'
 import { createClient } from '@/lib/supabase/server'
 import type { Tables } from '@/lib/database.types'
 
@@ -34,10 +35,18 @@ export async function Header() {
     .order('sort_order')
   
   // Group subcategories by parent
-  const categoriesWithSubs: CategoryWithSubcategories[] = topLevelCategories?.map(category => ({
-    ...category,
-    subcategories: subcategories?.filter(sub => sub.parent_id === category.id) || []
-  })) || []
+  const categoriesWithSubs: CategoryWithSubcategories[] = (topLevelCategories as Tables<'categories'>[] || []).map((category: Tables<'categories'>) => {
+    const categoryId = category.id
+    const subs = (subcategories as Tables<'categories'>[] || []).filter((sub: Tables<'categories'>) => sub.parent_id === categoryId)
+    return {
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      sort_order: category.sort_order,
+      parent_id: category.parent_id,
+      subcategories: subs
+    }
+  })
 
   return (
     <>
@@ -71,6 +80,7 @@ export async function Header() {
                     Sell
                   </Link>
                 </Button>
+                <NotificationsDropdown />
                 <Button variant="ghost" size="sm" asChild>
                   <Link href="/account/watchlist">
                     <Heart className="h-4 w-4" />
