@@ -130,10 +130,14 @@ export function ImageUpload({
     if (!currentListingId && onCreateDraft) {
       try {
         currentListingId = await onCreateDraft()
+        console.log('Successfully created draft listing for image upload:', currentListingId)
       } catch (error) {
+        console.error('Failed to create draft listing for image upload:', error)
         toast({
-          title: 'Error',
-          description: 'Failed to create draft listing for image upload',
+          title: 'Error Creating Draft',
+          description: error instanceof Error 
+            ? error.message 
+            : 'Failed to create draft listing for image upload. Please fill out the required form fields first.',
           variant: 'destructive',
         })
         setIsUploading(false)

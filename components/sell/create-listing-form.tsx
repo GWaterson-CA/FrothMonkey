@@ -86,26 +86,53 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
     if (listingId) return listingId // Already have a draft
 
     try {
+      // Ensure we have required fields before attempting to create
+      if (!categories || categories.length === 0) {
+        throw new Error('No categories available. Please refresh the page and try again.')
+      }
+
+      // Find a default category (preferably a subcategory)
+      const defaultCategory = categories.find(cat => cat.parent_id !== null) || categories[0]
+      if (!defaultCategory) {
+        throw new Error('No valid category found. Please refresh the page and try again.')
+      }
+
+      // Ensure we have valid data with proper defaults
+      const startPrice = Math.max(1, data.startPrice || 1) // Ensure minimum of 1
+      const draftData = {
+        title: (data.title && data.title.trim()) || 'Draft Listing',
+        description: (data.description && data.description.trim()) || 'Draft description',
+        category_id: data.categoryId || defaultCategory.id,
+        location: data.location || 'Squamish, BC',
+        condition: data.condition || 'good',
+        start_price: startPrice,
+        current_price: startPrice, // Set current_price to start_price to satisfy constraint
+        start_time: data.startTime || new Date().toISOString(),
+        end_time: data.endTime || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        owner_id: userId,
+        status: 'draft' as const,
+      }
+
+      // Validate required fields
+      if (!draftData.category_id || !draftData.owner_id) {
+        throw new Error('Missing required fields for draft creation')
+      }
+
+      console.log('Creating draft listing with data:', draftData)
+
       const { data: listing, error } = await supabase
         .from('listings')
-        .insert({
-          title: data.title || 'Draft Listing',
-          description: data.description || 'Draft description',
-          category_id: data.categoryId || categories[0]?.id,
-          location: data.location || 'Squamish, BC',
-          condition: data.condition || 'good',
-          start_price: data.startPrice || 1,
-          start_time: data.startTime || new Date().toISOString(),
-          end_time: data.endTime || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          owner_id: userId,
-          status: 'draft',
-        })
+        .insert(draftData)
         .select('id')
         .single()
 
       if (error) {
         console.error('Error creating draft listing:', error)
         throw new Error(`Failed to create draft: ${error.message}`)
+      }
+
+      if (!listing?.id) {
+        throw new Error('Draft created but no ID returned')
       }
 
       setListingId(listing.id)
@@ -163,6 +190,7 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
         try {
           currentListingId = await createDraftListing(data)
         } catch (error) {
+          console.error('Error in onSubmit createDraftListing:', error)
           toast({
             title: 'Error Creating Draft',
             description: error instanceof Error ? error.message : 'Failed to create draft listing',
