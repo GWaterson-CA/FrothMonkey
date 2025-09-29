@@ -9,6 +9,125 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      auction_contacts: {
+        Row: {
+          id: string
+          listing_id: string
+          seller_id: string
+          buyer_id: string
+          status: 'pending_approval' | 'approved' | 'auto_approved' | 'declined'
+          seller_contact_visible: boolean
+          buyer_contact_visible: boolean
+          reserve_met: boolean
+          final_price: number
+          created_at: string | null
+          approved_at: string | null
+          declined_at: string | null
+        }
+        Insert: {
+          id?: string
+          listing_id: string
+          seller_id: string
+          buyer_id: string
+          status?: 'pending_approval' | 'approved' | 'auto_approved' | 'declined'
+          seller_contact_visible?: boolean
+          buyer_contact_visible?: boolean
+          reserve_met?: boolean
+          final_price: number
+          created_at?: string | null
+          approved_at?: string | null
+          declined_at?: string | null
+        }
+        Update: {
+          id?: string
+          listing_id?: string
+          seller_id?: string
+          buyer_id?: string
+          status?: 'pending_approval' | 'approved' | 'auto_approved' | 'declined'
+          seller_contact_visible?: boolean
+          buyer_contact_visible?: boolean
+          reserve_met?: boolean
+          final_price?: number
+          created_at?: string | null
+          approved_at?: string | null
+          declined_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_contacts_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_contacts_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_contacts_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auction_messages: {
+        Row: {
+          id: string
+          contact_id: string
+          sender_id: string
+          recipient_id: string
+          message: string
+          read_at: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          contact_id: string
+          sender_id: string
+          recipient_id: string
+          message: string
+          read_at?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          contact_id?: string
+          sender_id?: string
+          recipient_id?: string
+          message?: string
+          read_at?: string | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_messages_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "auction_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auction_questions: {
         Row: {
           answer: string | null
@@ -566,6 +685,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_contact_exchange: {
+        Args: {
+          p_contact_id: string
+        }
+        Returns: boolean
+      }
       can_review_user: {
         Args: {
           transaction_uuid: string
@@ -573,6 +698,16 @@ export type Database = {
           reviewee_uuid: string
         }
         Returns: boolean
+      }
+      create_contact_exchange: {
+        Args: {
+          p_listing_id: string
+          p_seller_id: string
+          p_buyer_id: string
+          p_final_price: number
+          p_reserve_met: boolean
+        }
+        Returns: string
       }
       create_notification: {
         Args: {
@@ -589,6 +724,12 @@ export type Database = {
       create_time_warning_notifications: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      decline_contact_exchange: {
+        Args: {
+          p_contact_id: string
+        }
+        Returns: boolean
       }
       get_unanswered_questions_count: {
         Args: {

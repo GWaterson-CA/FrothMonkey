@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Search, User, Plus, Heart, Gavel, ChevronDown, Shield } from 'lucide-react'
+import { Search, User, Plus, Heart, Gavel, ChevronDown, Shield, Menu } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,6 +9,16 @@ import { SearchForm } from '@/components/search-form'
 import { NotificationsDropdown } from '@/components/notifications/notifications-dropdown'
 import { createClient } from '@/lib/supabase/server'
 import type { Tables } from '@/lib/database.types'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface CategoryWithSubcategories extends Tables<'categories'> {
   subcategories?: Tables<'categories'>[]
@@ -51,49 +61,49 @@ export async function Header() {
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center">
-          {/* Logo */}
-          <Link href="/" className="flex items-center">
+        <div className="container flex h-16 items-center gap-2 md:gap-4">
+          {/* Logo - Always visible */}
+          <Link href="/" className="flex items-center flex-shrink-0">
             <Image 
               src="/FrothMonkey Logo Blue.png" 
               alt="FrothMonkey Logo" 
               width={128} 
               height={128}
-              className="h-8 w-auto"
+              className="h-7 w-auto md:h-8"
               priority
               quality={100}
             />
           </Link>
 
-          {/* Search */}
-          <div className="flex flex-1 items-center space-x-2 px-6">
+          {/* Search - Hidden on small screens, shown on md+ */}
+          <div className="hidden md:flex flex-1 items-center px-2 lg:px-6">
             <SearchForm />
           </div>
 
-          {/* Navigation */}
-          <nav className="flex items-center space-x-2">
+          {/* Navigation - Compact on mobile */}
+          <nav className="flex items-center gap-1 md:gap-2 ml-auto">
             {user && profile ? (
               <>
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" asChild className="hidden sm:flex">
                   <Link href="/sell/new">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Sell
+                    <Plus className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Sell</span>
                   </Link>
                 </Button>
                 <NotificationsDropdown />
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" asChild className="hidden md:flex">
                   <Link href="/account/watchlist">
                     <Heart className="h-4 w-4" />
                   </Link>
                 </Button>
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" asChild className="hidden lg:flex">
                   <Link href="/account">
                     <User className="h-4 w-4 mr-2" />
                     Account
                   </Link>
                 </Button>
                 {profile.is_admin && (
-                  <Button variant="ghost" size="sm" asChild>
+                  <Button variant="ghost" size="sm" asChild className="hidden lg:flex">
                     <Link href="/admin">
                       <Shield className="h-4 w-4 mr-2" />
                       Admin
@@ -104,7 +114,7 @@ export async function Header() {
               </>
             ) : user && !profile ? (
               <>
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" asChild className="hidden sm:flex">
                   <Link href="/auth/setup-profile">Complete Profile</Link>
                 </Button>
                 <UserNav profile={null} />
@@ -112,21 +122,88 @@ export async function Header() {
             ) : (
               <>
                 <Button variant="ghost" size="sm" asChild>
-                  <Link href="/auth/login">Sign In</Link>
+                  <Link href="/auth/login">
+                    <span className="hidden sm:inline">Sign In</span>
+                    <span className="sm:hidden">Login</span>
+                  </Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link href="/auth/register">Sign Up</Link>
+                  <Link href="/auth/register">
+                    <span className="hidden sm:inline">Sign Up</span>
+                    <span className="sm:hidden">Join</span>
+                  </Link>
                 </Button>
               </>
             )}
           </nav>
+        </div>
+
+        {/* Mobile Search Bar - Shown on small screens only */}
+        <div className="md:hidden border-t">
+          <div className="container py-2">
+            <SearchForm />
+          </div>
         </div>
       </header>
       
       {/* Category Navigation Bar */}
       <nav className="bg-muted/30 sticky top-16 z-40 dropdown-container">
         <div className="container dropdown-container relative">
-          <div className="flex items-center space-x-8 py-3 overflow-x-auto dropdown-container">
+          {/* Mobile Category Dropdown - Shown on small screens */}
+          <div className="md:hidden py-3">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  <span className="flex items-center">
+                    <Menu className="h-4 w-4 mr-2" />
+                    Browse Categories
+                  </span>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[calc(100vw-2rem)] max-h-[70vh] overflow-y-auto">
+                <DropdownMenuItem asChild>
+                  <Link href="/" className="w-full">
+                    All Categories
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {categoriesWithSubs.map((category) => (
+                  category.subcategories && category.subcategories.length > 0 ? (
+                    <DropdownMenuSub key={category.id}>
+                      <DropdownMenuSubTrigger>
+                        {category.name}
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent className="max-h-[60vh] overflow-y-auto">
+                        <DropdownMenuItem asChild>
+                          <Link href={`/category/${category.slug}`} className="w-full font-semibold">
+                            All {category.name}
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        {category.subcategories.map((subcategory) => (
+                          <DropdownMenuItem key={subcategory.id} asChild>
+                            <Link href={`/category/${subcategory.slug}`} className="w-full">
+                              {subcategory.name}
+                            </Link>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                  ) : (
+                    <DropdownMenuItem key={category.id} asChild>
+                      <Link href={`/category/${category.slug}`} className="w-full">
+                        {category.name}
+                      </Link>
+                    </DropdownMenuItem>
+                  )
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Desktop Category Navigation - Hidden on small screens */}
+          <div className="hidden md:flex items-center space-x-8 py-3 overflow-x-auto dropdown-container">
             <Link 
               href="/"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"

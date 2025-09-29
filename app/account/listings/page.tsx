@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, Edit, Eye, Trash2, Package } from 'lucide-react'
+import { Plus, Edit, Eye, Trash2, Package, Users } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getUserProfile } from '@/lib/auth'
 import { formatCurrency, formatDateTime, isAuctionEnded } from '@/lib/utils'
 import { CountdownTimer } from '@/components/countdown-timer'
+import { ContactExchangeCard } from '@/components/account/contact-exchange-card'
 
 async function MyListingsContent() {
   const profile = await getUserProfile()
@@ -38,6 +39,28 @@ async function MyListingsContent() {
     console.error('Error fetching listings:', error)
     return <div>Error loading listings</div>
   }
+
+  // Fetch contact exchanges for this user's listings
+  const { data: contactExchanges } = await supabase
+    .from('auction_contacts')
+    .select(`
+      *,
+      listing:listings (
+        id,
+        title,
+        cover_image_url,
+        location,
+        end_time
+      ),
+      buyer:profiles!auction_contacts_buyer_id_fkey (
+        id,
+        username,
+        full_name,
+        avatar_url
+      )
+    `)
+    .eq('seller_id', profile.id)
+    .order('created_at', { ascending: false })
 
   // Group listings by status
   const draftListings = listings?.filter(l => l.status === 'draft') || []
@@ -149,6 +172,9 @@ async function MyListingsContent() {
           <TabsTrigger value="ended">
             Ended ({endedListings.length})
           </TabsTrigger>
+          <TabsTrigger value="contacts">
+            Contact Exchanges ({contactExchanges?.length || 0})
+          </TabsTrigger>
         </TabsList>
 
         <Button asChild>
@@ -207,6 +233,29 @@ async function MyListingsContent() {
                 <Eye className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p className="text-lg mb-2">No ended auctions</p>
                 <p className="text-sm">Completed auctions will appear here</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </TabsContent>
+
+      <TabsContent value="contacts" className="space-y-4">
+        {contactExchanges && contactExchanges.length > 0 ? (
+          contactExchanges.map((contact: any) => (
+            <ContactExchangeCard
+              key={contact.id}
+              contact={contact}
+              currentUserId={profile.id}
+              role="seller"
+            />
+          ))
+        ) : (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <div className="text-muted-foreground">
+                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg mb-2">No contact exchanges</p>
+                <p className="text-sm">When your auctions end, contact exchanges will appear here</p>
               </div>
             </CardContent>
           </Card>

@@ -4,11 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CreditCard, Trophy, X, Eye } from 'lucide-react'
+import { CreditCard, Trophy, X, Eye, Users } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { requireProfile } from '@/lib/auth'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
 import { CountdownTimer } from '@/components/countdown-timer'
+import { ContactExchangeCard } from '@/components/account/contact-exchange-card'
 
 async function MyBidsContent() {
   const profile = await requireProfile()
@@ -60,6 +61,28 @@ async function MyBidsContent() {
     console.error('Error fetching bids:', error)
     return <div>Error loading bids</div>
   }
+
+  // Fetch contact exchanges for this user as buyer
+  const { data: contactExchanges } = await supabase
+    .from('auction_contacts')
+    .select(`
+      *,
+      listing:listings (
+        id,
+        title,
+        cover_image_url,
+        location,
+        end_time
+      ),
+      seller:profiles!auction_contacts_seller_id_fkey (
+        id,
+        username,
+        full_name,
+        avatar_url
+      )
+    `)
+    .eq('buyer_id', profile.id)
+    .order('created_at', { ascending: false })
 
   // Get unique listings and determine user's status for each
   const listingBids = new Map()
@@ -186,6 +209,9 @@ async function MyBidsContent() {
         <TabsTrigger value="lost">
           Lost ({lostBids.length})
         </TabsTrigger>
+        <TabsTrigger value="contacts">
+          Contact Exchanges ({contactExchanges?.length || 0})
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="active" className="space-y-4 mt-6">
@@ -254,6 +280,29 @@ async function MyBidsContent() {
                 <X className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p className="text-lg mb-2">No lost auctions</p>
                 <p className="text-sm">Auctions you didn't win will appear here</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </TabsContent>
+
+      <TabsContent value="contacts" className="space-y-4 mt-6">
+        {contactExchanges && contactExchanges.length > 0 ? (
+          contactExchanges.map((contact: any) => (
+            <ContactExchangeCard
+              key={contact.id}
+              contact={contact}
+              currentUserId={profile.id}
+              role="buyer"
+            />
+          ))
+        ) : (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <div className="text-muted-foreground">
+                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg mb-2">No contact exchanges</p>
+                <p className="text-sm">When auctions you bid on end, contact exchanges will appear here</p>
               </div>
             </CardContent>
           </Card>
