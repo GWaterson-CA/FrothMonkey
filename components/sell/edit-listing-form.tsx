@@ -25,18 +25,18 @@ const editListingSchema = z.object({
   description: z.string().min(10, 'Description must be at least 10 characters').max(2000, 'Description must be less than 2000 characters'),
   categoryId: z.string().uuid('Please select a category'),
   condition: z.enum(['new', 'like_new', 'good', 'fair', 'parts']),
-  startPrice: z.union([
-    z.number().min(1, 'Starting price must be at least $1.00').multipleOf(1, 'Starting price must be in full dollars (no cents)'),
-    z.literal('').transform(() => undefined)
-  ]).optional(),
-  reservePrice: z.union([
-    z.number().min(1, 'Reserve price must be at least $1.00').multipleOf(1, 'Reserve price must be in full dollars (no cents)'),
-    z.literal('').transform(() => undefined)
-  ]).optional(),
-  buyNowPrice: z.union([
-    z.number().min(1, 'Buy now price must be at least $1.00').multipleOf(1, 'Buy now price must be in full dollars (no cents)'),
-    z.literal('').transform(() => undefined)
-  ]).optional(),
+  startPrice: z.preprocess(
+    (val) => (typeof val === 'number' && isNaN(val)) || val === '' ? undefined : val,
+    z.number().min(1, 'Starting price must be at least $1.00').multipleOf(1, 'Starting price must be in full dollars (no cents)').optional()
+  ),
+  reservePrice: z.preprocess(
+    (val) => (typeof val === 'number' && isNaN(val)) || val === '' ? undefined : val,
+    z.number().min(1, 'Reserve price must be at least $1.00').multipleOf(1, 'Reserve price must be in full dollars (no cents)').optional()
+  ),
+  buyNowPrice: z.preprocess(
+    (val) => (typeof val === 'number' && isNaN(val)) || val === '' ? undefined : val,
+    z.number().min(1, 'Buy now price must be at least $1.00').multipleOf(1, 'Buy now price must be in full dollars (no cents)').optional()
+  ),
 })
 
 type EditListingFormData = z.infer<typeof editListingSchema>

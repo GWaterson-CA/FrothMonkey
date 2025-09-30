@@ -25,8 +25,14 @@ const listingSchema = z.object({
   location: z.string().min(1, 'Please select a location'),
   condition: z.enum(['new', 'like_new', 'good', 'fair', 'parts']),
   startPrice: z.number().min(1, 'Starting price must be at least $1.00').multipleOf(1, 'Starting price must be in full dollars (no cents)'),
-  reservePrice: z.number().min(1, 'Reserve price must be at least $1.00').multipleOf(1, 'Reserve price must be in full dollars (no cents)').optional(),
-  buyNowPrice: z.number().min(1, 'Buy now price must be at least $1.00').multipleOf(1, 'Buy now price must be in full dollars (no cents)').optional(),
+  reservePrice: z.preprocess(
+    (val) => (typeof val === 'number' && isNaN(val)) || val === '' ? undefined : val,
+    z.number().min(1, 'Reserve price must be at least $1.00').multipleOf(1, 'Reserve price must be in full dollars (no cents)').optional()
+  ),
+  buyNowPrice: z.preprocess(
+    (val) => (typeof val === 'number' && isNaN(val)) || val === '' ? undefined : val,
+    z.number().min(1, 'Buy now price must be at least $1.00').multipleOf(1, 'Buy now price must be in full dollars (no cents)').optional()
+  ),
   startTime: z.string(),
   endTime: z.string(),
   antiSnipingSeconds: z.number().min(0).max(300).default(30),
