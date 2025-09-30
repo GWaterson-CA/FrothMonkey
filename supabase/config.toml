@@ -18,6 +18,15 @@ enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
 
+# Custom email templates for FrothMonkey branding
+[auth.email.template.confirmation]
+subject = "Welcome to FrothMonkey - Confirm Your Email"
+content_path = "./supabase/templates/confirmation.html"
+
+# Sender configuration
+[auth.email.smtp]
+sender_name = "FrothMonkey"
+
 [auth.sms]
 enable_signup = false
 enable_confirmations = false

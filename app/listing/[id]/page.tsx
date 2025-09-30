@@ -6,7 +6,7 @@ import { Footer } from '@/components/footer'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/server'
-import { getUserProfile } from '@/lib/auth'
+import { getUserProfile, getUser } from '@/lib/auth'
 import { formatCurrency, formatDateTime, getImageUrl, isAuctionEnded } from '@/lib/utils'
 import { CountdownTimer } from '@/components/countdown-timer'
 import { BidHistory } from '@/components/bid-history'
@@ -18,6 +18,7 @@ import { WatchlistToggleButton } from '@/components/account/watchlist-toggle-but
 import { ShareButton } from '@/components/share-button'
 import { ReportButton } from '@/components/report-button'
 import { AnalyticsTracker } from '@/components/analytics-tracker'
+import { AuthCTACard } from '@/components/auth-cta-card'
 
 // Helper function to format payment method labels
 function formatPaymentMethod(method: string): string {
@@ -159,6 +160,7 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
 
 export default async function ListingPage({ params }: ListingPageProps) {
   const supabase = createClient()
+  const user = await getUser()
   const profile = await getUserProfile()
 
   // Fetch listing with related data
@@ -346,6 +348,16 @@ export default async function ListingPage({ params }: ListingPageProps) {
                   currentPrice={listing.current_price || listing.start_price}
                   buyNowPrice={listing.buy_now_price}
                   reserveMet={listing.reserve_met}
+                />
+              </div>
+            )}
+
+            {/* Auth CTA for non-logged-in users OR incomplete profile - Order 4 on mobile, shown in sidebar on desktop */}
+            {!profile && isActuallyLive && (
+              <div className="order-4">
+                <AuthCTACard 
+                  isAuctionActive={true} 
+                  isProfileIncomplete={!!user && !profile}
                 />
               </div>
             )}

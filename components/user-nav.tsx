@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { User, Settings, Package, Heart, CreditCard, LogOut } from "lucide-react"
+import { User, Settings, Package, Heart, CreditCard, LogOut, UserPlus } from "lucide-react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -53,6 +53,13 @@ export function UserNav({ profile }: UserNavProps) {
               </p>
             </div>
           </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href="/auth/setup-profile">
+              <UserPlus className="mr-2 h-4 w-4" />
+              Complete Profile
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleSignOut}>
             <LogOut className="mr-2 h-4 w-4" />

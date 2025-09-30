@@ -45,7 +45,20 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
       .single()
     
     if (category) {
-      query = query.eq('category_id', category.id)
+      // Get all subcategories for this category
+      const { data: subcategories } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('parent_id', category.id)
+      
+      // Build array of category IDs (parent + all children)
+      const categoryIds = [category.id]
+      if (subcategories && subcategories.length > 0) {
+        categoryIds.push(...subcategories.map(sub => sub.id))
+      }
+      
+      // Filter by parent category OR any of its subcategories
+      query = query.in('category_id', categoryIds)
     }
   }
 

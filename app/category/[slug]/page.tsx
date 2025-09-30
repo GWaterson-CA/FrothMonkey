@@ -52,11 +52,23 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     notFound()
   }
 
-  // Get listing count for this category
+  // Get all subcategories for this category
+  const { data: subcategories } = await supabase
+    .from('categories')
+    .select('id')
+    .eq('parent_id', category.id)
+
+  // Build array of category IDs (parent + all children)
+  const categoryIds = [category.id]
+  if (subcategories && subcategories.length > 0) {
+    categoryIds.push(...subcategories.map(sub => sub.id))
+  }
+
+  // Get listing count for this category and all subcategories
   const { count: listingCount } = await supabase
     .from('listings')
     .select('*', { count: 'exact', head: true })
-    .eq('category_id', category.id)
+    .in('category_id', categoryIds)
     .in('status', ['live', 'ended', 'sold'])
 
   return (
@@ -86,6 +98,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           <div className="mb-6 flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
               Showing auctions in {category.name}
+              {subcategories && subcategories.length > 0 && ' and its subcategories'}
             </div>
             
             {/* TODO: Add filter and sort controls */}

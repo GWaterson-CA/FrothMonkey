@@ -19,6 +19,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu'
+import { MobileCategoryDialog } from '@/components/mobile-category-dialog'
 
 interface CategoryWithSubcategories extends Tables<'categories'> {
   subcategories?: Tables<'categories'>[]
@@ -114,8 +115,10 @@ export async function Header() {
               </>
             ) : user && !profile ? (
               <>
-                <Button variant="ghost" size="sm" asChild className="hidden sm:flex">
-                  <Link href="/auth/setup-profile">Complete Profile</Link>
+                <Button variant="default" size="sm" asChild>
+                  <Link href="/auth/setup-profile">
+                    Complete Profile
+                  </Link>
                 </Button>
                 <UserNav profile={null} />
               </>
@@ -149,57 +152,9 @@ export async function Header() {
       {/* Category Navigation Bar */}
       <nav className="bg-muted/30 sticky top-16 z-40 dropdown-container">
         <div className="container dropdown-container relative">
-          {/* Mobile Category Dropdown - Shown on small screens */}
+          {/* Mobile Category Dialog - Shown on small screens */}
           <div className="md:hidden py-3">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full justify-between">
-                  <span className="flex items-center">
-                    <Menu className="h-4 w-4 mr-2" />
-                    Browse Categories
-                  </span>
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-[calc(100vw-2rem)] max-h-[70vh] overflow-y-auto">
-                <DropdownMenuItem asChild>
-                  <Link href="/" className="w-full">
-                    All Categories
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {categoriesWithSubs.map((category) => (
-                  category.subcategories && category.subcategories.length > 0 ? (
-                    <DropdownMenuSub key={category.id}>
-                      <DropdownMenuSubTrigger>
-                        {category.name}
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent className="max-h-[60vh] overflow-y-auto">
-                        <DropdownMenuItem asChild>
-                          <Link href={`/category/${category.slug}`} className="w-full font-semibold">
-                            All {category.name}
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        {category.subcategories.map((subcategory) => (
-                          <DropdownMenuItem key={subcategory.id} asChild>
-                            <Link href={`/category/${subcategory.slug}`} className="w-full">
-                              {subcategory.name}
-                            </Link>
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                  ) : (
-                    <DropdownMenuItem key={category.id} asChild>
-                      <Link href={`/category/${category.slug}`} className="w-full">
-                        {category.name}
-                      </Link>
-                    </DropdownMenuItem>
-                  )
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <MobileCategoryDialog categories={categoriesWithSubs} />
           </div>
 
           {/* Desktop Category Navigation - Hidden on small screens */}

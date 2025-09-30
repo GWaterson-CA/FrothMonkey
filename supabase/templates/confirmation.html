@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirm Your FrothMonkey Account</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 40px 0;">
+        <table role="presentation" style="width: 600px; max-width: 100%; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header with Logo -->
+          <tr>
+            <td style="padding: 40px 40px 20px; text-align: center; background-color: #3B82F6; border-radius: 8px 8px 0 0;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">
+                🐵 FrothMonkey
+              </h1>
+              <p style="margin: 8px 0 0; color: #E0E7FF; font-size: 14px;">
+                Your Auction Marketplace
+              </p>
+            </td>
+          </tr>
+
+          <!-- Main Content -->
+          <tr>
+            <td style="padding: 40px;">
+              <h2 style="margin: 0 0 20px; color: #111827; font-size: 24px; font-weight: 600;">
+                Welcome to FrothMonkey!
+              </h2>
+              
+              <p style="margin: 0 0 20px; color: #4B5563; font-size: 16px; line-height: 24px;">
+                Thanks for signing up! We're excited to have you join our community of buyers and sellers.
+              </p>
+              
+              <p style="margin: 0 0 30px; color: #4B5563; font-size: 16px; line-height: 24px;">
+                To get started, please confirm your email address by clicking the button below:
+              </p>
+
+              <!-- CTA Button -->
+              <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td align="center" style="padding: 0 0 30px;">
+                    <a href="{{ .ConfirmationURL }}" 
+                       style="display: inline-block; padding: 14px 32px; background-color: #3B82F6; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                      Confirm Your Email
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin: 0 0 10px; color: #6B7280; font-size: 14px; line-height: 20px;">
+                Or copy and paste this link into your browser:
+              </p>
+              
+              <p style="margin: 0 0 30px; padding: 12px; background-color: #F3F4F6; border-radius: 4px; word-break: break-all;">
+                <a href="{{ .ConfirmationURL }}" style="color: #3B82F6; font-size: 14px; text-decoration: none;">
+                  {{ .ConfirmationURL }}
+                </a>
+              </p>
+
+              <div style="border-top: 1px solid #E5E7EB; padding-top: 20px;">
+                <p style="margin: 0 0 16px; color: #111827; font-size: 16px; font-weight: 600;">
+                  What's next?
+                </p>
+                <ul style="margin: 0; padding-left: 20px; color: #4B5563; font-size: 14px; line-height: 22px;">
+                  <li style="margin-bottom: 8px;">Browse thousands of unique items</li>
+                  <li style="margin-bottom: 8px;">Place bids on items you love</li>
+                  <li style="margin-bottom: 8px;">List your own items for auction</li>
+                  <li>Build your reputation with reviews</li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 30px 40px; background-color: #F9FAFB; border-radius: 0 0 8px 8px; border-top: 1px solid #E5E7EB;">
+              <p style="margin: 0 0 12px; color: #6B7280; font-size: 14px; line-height: 20px; text-align: center;">
+                Happy bidding!<br>
+                <strong style="color: #111827;">The FrothMonkey Team</strong>
+              </p>
+              
+              <p style="margin: 20px 0 0; color: #9CA3AF; font-size: 12px; line-height: 18px; text-align: center;">
+                If you didn't create an account with FrothMonkey, you can safely ignore this email.
+              </p>
+              
+              <p style="margin: 12px 0 0; color: #9CA3AF; font-size: 12px; text-align: center;">
+                © 2025 FrothMonkey. All rights reserved.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
