@@ -5,7 +5,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy | FrothMonkey',
-  description: 'Privacy Policy for FrothMonkey auction marketplace',
+  description: 'Read FrothMonkey\'s Privacy Policy to understand how we collect, use, and protect your personal information on our auction marketplace platform.',
+  alternates: {
+    canonical: 'https://www.frothmonkey.com/privacy',
+  },
+  openGraph: {
+    title: 'Privacy Policy | FrothMonkey',
+    description: 'Read FrothMonkey\'s Privacy Policy to understand how we collect, use, and protect your personal information.',
+    url: 'https://www.frothmonkey.com/privacy',
+    siteName: 'FrothMonkey',
+    type: 'website',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 export default function PrivacyPage() {

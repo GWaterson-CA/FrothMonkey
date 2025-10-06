@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   
   const { data: category } = await supabase
     .from('categories')
-    .select('name')
+    .select('name, description')
     .eq('slug', params.slug)
     .single()
 
@@ -32,9 +32,38 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     }
   }
 
+  const baseUrl = 'https://www.frothmonkey.com'
+  const categoryUrl = `${baseUrl}/category/${params.slug}`
+  const title = `${category.name} Auctions | FrothMonkey`
+  const description = category.description || `Browse ${category.name} auctions on FrothMonkey. Find unique items and great deals in the ${category.name} category.`
+
   return {
-    title: `${category.name} Auctions | FrothMonkey`,
-    description: `Browse ${category.name} auctions and find great deals`,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: categoryUrl,
+      siteName: 'FrothMonkey',
+      type: 'website',
+      images: [
+        {
+          url: `${baseUrl}/FrothMonkey Logo Blue.png`,
+          width: 1200,
+          height: 630,
+          alt: `${category.name} Auctions on FrothMonkey`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`${baseUrl}/FrothMonkey Logo Blue.png`],
+    },
+    alternates: {
+      canonical: categoryUrl,
+    },
   }
 }
 

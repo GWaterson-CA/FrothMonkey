@@ -6,7 +6,21 @@ import { Separator } from '@/components/ui/separator'
 
 export const metadata: Metadata = {
   title: 'Terms of Service | FrothMonkey',
-  description: 'Terms of Service for FrothMonkey auction marketplace',
+  description: 'Read FrothMonkey\'s Terms of Service to understand the rules, policies, and guidelines for using our online auction marketplace platform.',
+  alternates: {
+    canonical: 'https://www.frothmonkey.com/terms',
+  },
+  openGraph: {
+    title: 'Terms of Service | FrothMonkey',
+    description: 'Read FrothMonkey\'s Terms of Service to understand the rules and policies for using our auction marketplace.',
+    url: 'https://www.frothmonkey.com/terms',
+    siteName: 'FrothMonkey',
+    type: 'website',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 export default function TermsPage() {

@@ -252,3 +252,4 @@ In **Authentication** → **Settings** → **General**:
 
 **Last Updated**: September 30, 2025  
 **Contact**: For questions about email setup, check Supabase docs or email configuration files.
+
