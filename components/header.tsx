@@ -71,8 +71,13 @@ export async function Header() {
             <SearchForm />
           </div>
 
+          {/* Desktop Category Dropdown - Next to search bar */}
+          <div className="hidden md:block">
+            <DesktopCategoryDropdown categories={categoriesWithSubs} />
+          </div>
+
           {/* Navigation - Compact on mobile */}
-          <nav className="flex items-center gap-1 md:gap-2 ml-auto">
+          <nav className="flex items-center gap-1 md:gap-2">
             {user && profile ? (
               <>
                 <Button variant="ghost" size="sm" asChild className="hidden sm:flex">
@@ -139,18 +144,10 @@ export async function Header() {
         </div>
       </header>
       
-      {/* Category Navigation Bar */}
-      <nav className="bg-muted/30 sticky top-16 z-40 border-b">
+      {/* Category Navigation Bar - Mobile Only */}
+      <nav className="bg-muted/30 sticky top-16 z-40 border-b md:hidden">
         <div className="container py-3">
-          {/* Mobile Category Dialog - Shown on small screens */}
-          <div className="md:hidden">
-            <MobileCategoryDialog categories={categoriesWithSubs} />
-          </div>
-
-          {/* Desktop Category Dropdown - Hidden on small screens */}
-          <div className="hidden md:block">
-            <DesktopCategoryDropdown categories={categoriesWithSubs} />
-          </div>
+          <MobileCategoryDialog categories={categoriesWithSubs} />
         </div>
       </nav>
     </>
