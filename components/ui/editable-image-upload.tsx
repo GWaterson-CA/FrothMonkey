@@ -79,12 +79,12 @@ function SortableImage({ image, index, onRemove, disabled }: SortableImageProps)
       className={`relative group ${isDragging ? 'z-50 shadow-lg' : ''}`}
     >
       <CardContent className="p-2">
-        <div className="aspect-square relative bg-muted rounded-lg overflow-hidden">
+        <div className="aspect-square relative bg-muted rounded-lg overflow-hidden flex items-center justify-center">
           <Image
             src={image.url.startsWith('blob:') ? image.url : getImageUrl(image.url)}
             alt={`Image ${index + 1}`}
             fill
-            className="object-cover"
+            className="object-contain"
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
           />
           
@@ -184,13 +184,13 @@ export function EditableImageUpload({
     setImages(initialImages)
   }, [initialImages])
 
-  // Image compression options
+  // Image compression options - preserves aspect ratio
   const compressionOptions = {
-    maxSizeMB: 0.5,
-    maxWidthOrHeight: 800,
+    maxSizeMB: 1, // 1MB max for better quality
+    maxWidthOrHeight: 1920, // Higher resolution while still compressing
     useWebWorker: true,
     fileType: 'image/jpeg' as const,
-    initialQuality: 0.7,
+    initialQuality: 0.8, // Better quality
   }
 
   const compressImage = async (file: File): Promise<File> => {

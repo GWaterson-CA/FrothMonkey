@@ -33,13 +33,13 @@ export function AnswerImageUpload({
   const [isUploading, setIsUploading] = useState(false)
   const { toast } = useToast()
 
-  // Image compression options
+  // Image compression options - preserves aspect ratio
   const compressionOptions = {
-    maxSizeMB: 0.5,
-    maxWidthOrHeight: 800,
+    maxSizeMB: 1, // 1MB max for better quality
+    maxWidthOrHeight: 1920, // Higher resolution while still compressing
     useWebWorker: true,
     fileType: 'image/jpeg' as const,
-    initialQuality: 0.7,
+    initialQuality: 0.8, // Better quality
   }
 
   const compressImage = async (file: File): Promise<File> => {
@@ -253,12 +253,12 @@ export function AnswerImageUpload({
         <div className="grid grid-cols-3 gap-2">
           {images.map((image, index) => (
             <div key={image.id} className="relative group">
-              <div className="aspect-square relative bg-muted rounded-lg overflow-hidden border">
+              <div className="aspect-square relative bg-muted rounded-lg overflow-hidden border flex items-center justify-center">
                 <Image
                   src={image.url}
                   alt={`Answer image ${index + 1}`}
                   fill
-                  className="object-cover"
+                  className="object-contain"
                   sizes="(max-width: 768px) 33vw, 20vw"
                 />
                 

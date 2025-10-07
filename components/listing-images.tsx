@@ -55,12 +55,12 @@ export function ListingImages({ images, coverImage, title }: ListingImagesProps)
   return (
     <div className="space-y-4">
       {/* Main Image */}
-      <div className="relative aspect-square bg-muted rounded-lg overflow-hidden group">
+      <div className="relative aspect-[4/3] bg-muted rounded-lg overflow-hidden group flex items-center justify-center">
         <Image
           src={getImageUrl(allImages[currentIndex].path)}
           alt={`${title} - Image ${currentIndex + 1}`}
           fill
-          className="object-cover"
+          className="object-contain"
           sizes="(max-width: 768px) 100vw, 66vw"
           priority={currentIndex === 0}
         />
@@ -112,7 +112,7 @@ export function ListingImages({ images, coverImage, title }: ListingImagesProps)
                 src={getImageUrl(image.path)}
                 alt={`${title} - Thumbnail ${index + 1}`}
                 fill
-                className="object-cover"
+                className="object-contain bg-muted"
                 sizes="64px"
               />
             </button>

@@ -38,13 +38,13 @@ export function ImageUpload({
   const [isUploading, setIsUploading] = useState(false)
   const { toast } = useToast()
 
-  // Image compression options for development (low resolution)
+  // Image compression options - preserves aspect ratio
   const compressionOptions = {
-    maxSizeMB: 0.5, // 500KB max
-    maxWidthOrHeight: 800, // 800px max dimension for dev
+    maxSizeMB: 1, // 1MB max for better quality
+    maxWidthOrHeight: 1920, // Higher resolution while still compressing
     useWebWorker: true,
     fileType: 'image/jpeg' as const,
-    initialQuality: 0.7,
+    initialQuality: 0.8, // Better quality
   }
 
   const compressImage = async (file: File): Promise<File> => {
@@ -324,7 +324,7 @@ export function ImageUpload({
                   Up to {maxImages} images • JPEG, PNG, WebP, GIF • Max 5MB each
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Images will be compressed to 800px for development
+                  Images will be optimized while preserving quality and aspect ratio
                 </p>
               </div>
 
@@ -345,12 +345,12 @@ export function ImageUpload({
           {images.map((image, index) => (
             <Card key={image.id} className="relative group">
               <CardContent className="p-2">
-                <div className="aspect-square relative bg-muted rounded-lg overflow-hidden">
+                <div className="aspect-square relative bg-muted rounded-lg overflow-hidden flex items-center justify-center">
                   <Image
                     src={image.url}
                     alt={`Upload ${index + 1}`}
                     fill
-                    className="object-cover"
+                    className="object-contain"
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                   />
                   

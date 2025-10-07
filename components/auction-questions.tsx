@@ -315,12 +315,12 @@ export function AuctionQuestions({ listingId, isOwner, isLoggedIn }: AuctionQues
                   {question.answer_images && question.answer_images.length > 0 && (
                     <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {question.answer_images.map((imagePath, index) => (
-                        <div key={index} className="relative aspect-square rounded-lg overflow-hidden border bg-muted">
+                        <div key={index} className="relative aspect-square rounded-lg overflow-hidden border bg-muted flex items-center justify-center">
                           <Image
                             src={getImageUrl(imagePath)}
                             alt={`Answer image ${index + 1}`}
                             fill
-                            className="object-cover"
+                            className="object-contain"
                             sizes="(max-width: 640px) 50vw, 33vw"
                           />
                         </div>
