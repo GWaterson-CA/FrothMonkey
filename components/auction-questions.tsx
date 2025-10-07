@@ -8,11 +8,15 @@ import { Badge } from '@/components/ui/badge'
 import { MessageCircle, Send, Reply } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils'
 import { useToast } from '@/components/ui/use-toast'
+import { AnswerImageUpload } from '@/components/answer-image-upload'
+import Image from 'next/image'
+import { getImageUrl } from '@/lib/utils'
 
 interface Question {
   id: string
   question: string
   answer: string | null
+  answer_images: string[] | null
   answered_at: string | null
   created_at: string | null
   questioner_id: string
@@ -40,6 +44,7 @@ export function AuctionQuestions({ listingId, isOwner, isLoggedIn }: AuctionQues
   const [submittingQuestion, setSubmittingQuestion] = useState(false)
   const [answeringId, setAnsweringId] = useState<string | null>(null)
   const [answerText, setAnswerText] = useState('')
+  const [answerImagePaths, setAnswerImagePaths] = useState<string[]>([])
   const { toast } = useToast()
 
   useEffect(() => {
@@ -115,16 +120,20 @@ export function AuctionQuestions({ listingId, isOwner, isLoggedIn }: AuctionQues
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          answer: answerText.trim()
+          answer: answerText.trim(),
+          image_paths: answerImagePaths.length > 0 ? answerImagePaths : undefined
         })
       })
 
       if (response.ok) {
         setAnsweringId(null)
         setAnswerText('')
+        setAnswerImagePaths([])
         toast({
           title: 'Answer posted',
-          description: 'Your answer is now visible to all users.',
+          description: answerImagePaths.length > 0 
+            ? 'Your answer with images is now visible to all users.'
+            : 'Your answer is now visible to all users.',
         })
         await fetchQuestions()
       } else {
@@ -225,6 +234,16 @@ export function AuctionQuestions({ listingId, isOwner, isLoggedIn }: AuctionQues
                       onChange={(e) => setAnswerText(e.target.value)}
                       rows={3}
                     />
+                    <div className="border rounded-lg p-3 bg-muted/5">
+                      <p className="text-xs font-medium mb-2 text-muted-foreground">
+                        Add images to your answer (optional)
+                      </p>
+                      <AnswerImageUpload
+                        listingId={listingId}
+                        onImagesChange={setAnswerImagePaths}
+                        maxImages={5}
+                      />
+                    </div>
                     <div className="flex gap-2">
                       <Button 
                         size="sm" 
@@ -239,6 +258,7 @@ export function AuctionQuestions({ listingId, isOwner, isLoggedIn }: AuctionQues
                         onClick={() => {
                           setAnsweringId(null)
                           setAnswerText('')
+                          setAnswerImagePaths([])
                         }}
                       >
                         Cancel
@@ -290,6 +310,23 @@ export function AuctionQuestions({ listingId, isOwner, isLoggedIn }: AuctionQues
                     )}
                   </div>
                   <p className="text-sm">{question.answer}</p>
+                  
+                  {/* Display answer images if any */}
+                  {question.answer_images && question.answer_images.length > 0 && (
+                    <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {question.answer_images.map((imagePath, index) => (
+                        <div key={index} className="relative aspect-square rounded-lg overflow-hidden border bg-muted">
+                          <Image
+                            src={getImageUrl(imagePath)}
+                            alt={`Answer image ${index + 1}`}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 50vw, 33vw"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

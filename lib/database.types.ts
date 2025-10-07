@@ -131,6 +131,7 @@ export type Database = {
       auction_questions: {
         Row: {
           answer: string | null
+          answer_images: string[] | null
           answered_at: string | null
           created_at: string | null
           id: string
@@ -141,6 +142,7 @@ export type Database = {
         }
         Insert: {
           answer?: string | null
+          answer_images?: string[] | null
           answered_at?: string | null
           created_at?: string | null
           id?: string
@@ -151,6 +153,7 @@ export type Database = {
         }
         Update: {
           answer?: string | null
+          answer_images?: string[] | null
           answered_at?: string | null
           created_at?: string | null
           id?: string

@@ -18,7 +18,7 @@ export async function PATCH(
       )
     }
 
-    const { answer } = await request.json()
+    const { answer, image_paths } = await request.json()
 
     if (!answer?.trim()) {
       return NextResponse.json(
@@ -35,7 +35,8 @@ export async function PATCH(
       .select(`
         *,
         listings!auction_questions_listing_id_fkey (
-          owner_id
+          owner_id,
+          id
         )
       `)
       .eq('id', questionId)
@@ -63,13 +64,19 @@ export async function PATCH(
       )
     }
 
-    // Update the question with the answer
+    // Update the question with the answer and images
+    const updateData: any = {
+      answer: answer.trim(),
+      answered_at: new Date().toISOString()
+    }
+
+    if (image_paths && image_paths.length > 0) {
+      updateData.answer_images = image_paths
+    }
+
     const { data, error } = await supabase
       .from('auction_questions')
-      .update({
-        answer: answer.trim(),
-        answered_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', questionId)
       .select(`
         *,
@@ -86,6 +93,40 @@ export async function PATCH(
         { error: 'Failed to answer question' },
         { status: 500 }
       )
+    }
+
+    // If images were uploaded, add them to the listing's images as well
+    if (image_paths && image_paths.length > 0) {
+      // @ts-ignore
+      const listingId = question.listings?.id
+
+      // Get current listing images count for proper sort order
+      const { data: existingImages } = await supabase
+        .from('listing_images')
+        .select('sort_order')
+        .eq('listing_id', listingId)
+        .order('sort_order', { ascending: false })
+        .limit(1)
+
+      const startingSortOrder = existingImages && existingImages.length > 0 
+        ? (existingImages[0].sort_order || 0) + 1 
+        : 1
+
+      // Insert images into listing_images table
+      const imageInserts = image_paths.map((path: string, index: number) => ({
+        listing_id: listingId,
+        path: path,
+        sort_order: startingSortOrder + index,
+      }))
+
+      const { error: imagesError } = await supabase
+        .from('listing_images')
+        .insert(imageInserts)
+
+      if (imagesError) {
+        console.error('Error adding images to listing:', imagesError)
+        // Don't fail the entire operation if adding to listing fails
+      }
     }
 
     return NextResponse.json({ data })
