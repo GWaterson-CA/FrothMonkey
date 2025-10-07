@@ -235,249 +235,245 @@ export default async function ListingPage({ params }: ListingPageProps) {
       <main className="flex-1">
         <div className="container py-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-            {/* Images - Order 1 on mobile, stays in place on desktop */}
-            <div className="order-1 lg:col-span-2">
+            {/* Left Column - Main Content */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Images */}
               <ListingImages 
                 images={listing.listing_images || []}
                 coverImage={listing.cover_image_url}
                 title={listing.title}
               />
+
+              {/* Title, Badges, and Actions */}
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    {listing.categories && (
+                      <Badge variant="outline">{listing.categories.name}</Badge>
+                    )}
+                    {isActuallyLive && (
+                      <Badge variant="success">
+                        Live
+                      </Badge>
+                    )}
+                    {hasEnded && listing.status === 'live' && (
+                      <Badge variant="secondary">
+                        Auction ended
+                      </Badge>
+                    )}
+                    {!isActuallyLive && listing.status !== 'live' && (
+                      <Badge variant="secondary">
+                        {listing.status}
+                      </Badge>
+                    )}
+                    {listing.reserve_met && (
+                      <Badge variant="secondary">Reserve Met</Badge>
+                    )}
+                    {listing.buy_now_enabled && !listing.reserve_met && (
+                      <Badge variant="outline">Buy Now Available</Badge>
+                    )}
+                  </div>
+                  <h1 className="text-2xl md:text-3xl font-bold">{listing.title}</h1>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2">
+                  <WatchlistToggleButton 
+                    listingId={listing.id}
+                    userId={profile?.id}
+                  />
+                  <ShareButton 
+                    listingId={listing.id}
+                    title={listing.title}
+                  />
+                  <ReportButton 
+                    listingId={listing.id}
+                    userId={profile?.id}
+                  />
+                </div>
+              </div>
+
+              {/* Description */}
+              {listing.description && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Description</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="whitespace-pre-wrap">
+                      {listing.description}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Bid History */}
+              <BidHistory 
+                listingId={listing.id} 
+                initialBids={bids || []} 
+              />
+
+              {/* Questions & Answers */}
+              <AuctionQuestions
+                listingId={listing.id}
+                isOwner={isOwner}
+                isLoggedIn={!!profile}
+              />
+
+              {/* Payment Preferences */}
+              {listing.profiles?.payment_preferences && 
+               listing.profiles.payment_preferences.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Payment Options</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      The seller accepts the following payment methods:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {listing.profiles.payment_preferences.map((method) => (
+                        <Badge key={method} variant="secondary" className="text-sm">
+                          {formatPaymentMethod(method)}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
-            {/* Title and Category - Order 2 on mobile */}
-            <div className="order-2 lg:col-span-2 space-y-4">
-              <div>
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  {listing.categories && (
-                    <Badge variant="outline">{listing.categories.name}</Badge>
-                  )}
+            {/* Right Sidebar */}
+            <div className="space-y-6">
+              {/* Current Bid Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Current Bid</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="text-3xl font-bold text-primary">
+                    {formatCurrency(listing.current_price || listing.start_price)}
+                  </div>
+                  
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Starting bid:</span>
+                      <span>{formatCurrency(listing.start_price)}</span>
+                    </div>
+                    {listing.reserve_price && (
+                      <div className="flex justify-between">
+                        <span>Reserve price:</span>
+                        <span>
+                          {listing.reserve_met ? 
+                            formatCurrency(listing.reserve_price) : 
+                            'Not disclosed'
+                          }
+                        </span>
+                      </div>
+                    )}
+                    {listing.buy_now_price && !listing.reserve_met && (
+                      <div className="flex justify-between">
+                        <span>Buy now price:</span>
+                        <span className="font-semibold text-primary">
+                          {formatCurrency(listing.buy_now_price)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
                   {isActuallyLive && (
-                    <Badge variant="success">
-                      Live
-                    </Badge>
-                  )}
-                  {hasEnded && listing.status === 'live' && (
-                    <Badge variant="secondary">
-                      Auction ended
-                    </Badge>
-                  )}
-                  {!isActuallyLive && listing.status !== 'live' && (
-                    <Badge variant="secondary">
-                      {listing.status}
-                    </Badge>
-                  )}
-                  {listing.reserve_met && (
-                    <Badge variant="secondary">Reserve Met</Badge>
-                  )}
-                  {listing.buy_now_enabled && !listing.reserve_met && (
-                    <Badge variant="outline">Buy Now Available</Badge>
-                  )}
-                </div>
-                <h1 className="text-2xl md:text-3xl font-bold">{listing.title}</h1>
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-2">
-                <WatchlistToggleButton 
-                  listingId={listing.id}
-                  userId={profile?.id}
-                />
-                <ShareButton 
-                  listingId={listing.id}
-                  title={listing.title}
-                />
-                <ReportButton 
-                  listingId={listing.id}
-                  userId={profile?.id}
-                />
-              </div>
-            </div>
-
-            {/* Current Price - Order 3 on mobile, shown in sidebar on desktop */}
-            <Card className="order-3">
-              <CardHeader>
-                <CardTitle>Current Bid</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-3xl font-bold text-primary">
-                  {formatCurrency(listing.current_price || listing.start_price)}
-                </div>
-                
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Starting bid:</span>
-                    <span>{formatCurrency(listing.start_price)}</span>
-                  </div>
-                  {listing.reserve_price && (
-                    <div className="flex justify-between">
-                      <span>Reserve price:</span>
-                      <span>
-                        {listing.reserve_met ? 
-                          formatCurrency(listing.reserve_price) : 
-                          'Not disclosed'
-                        }
-                      </span>
+                    <div className="pt-2 border-t">
+                      <div className="text-sm text-muted-foreground mb-2">
+                        Time remaining:
+                      </div>
+                      <CountdownTimer endTime={listing.end_time} />
                     </div>
                   )}
-                  {listing.buy_now_price && !listing.reserve_met && (
-                    <div className="flex justify-between">
-                      <span>Buy now price:</span>
-                      <span className="font-semibold text-primary">
-                        {formatCurrency(listing.buy_now_price)}
-                      </span>
-                    </div>
-                  )}
-                </div>
+                </CardContent>
+              </Card>
 
-                {isActuallyLive && (
-                  <div className="pt-2 border-t">
-                    <div className="text-sm text-muted-foreground mb-2">
-                      Time remaining:
-                    </div>
-                    <CountdownTimer endTime={listing.end_time} />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Bidding Form - Order 4 on mobile, shown in sidebar on desktop */}
-            {canBid && (
-              <div className="order-4">
+              {/* Bidding Form */}
+              {canBid && (
                 <BidForm 
                   listingId={listing.id}
                   currentPrice={listing.current_price || listing.start_price}
                   buyNowPrice={listing.buy_now_price}
                   reserveMet={listing.reserve_met}
                 />
-              </div>
-            )}
+              )}
 
-            {/* Auth CTA for non-logged-in users OR incomplete profile - Order 4 on mobile, shown in sidebar on desktop */}
-            {!profile && isActuallyLive && (
-              <div className="order-4">
+              {/* Auth CTA for non-logged-in users OR incomplete profile */}
+              {!profile && isActuallyLive && (
                 <AuthCTACard 
                   isAuctionActive={true} 
                   isProfileIncomplete={!!user && !profile}
                 />
-              </div>
-            )}
+              )}
 
-            {/* Description - Order 5 on mobile */}
-            {listing.description && (
-              <Card className="order-5 lg:col-span-2">
+              {/* Seller Info */}
+              <Card>
                 <CardHeader>
-                  <CardTitle>Description</CardTitle>
+                  <CardTitle>Seller</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="whitespace-pre-wrap">
-                    {listing.description}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Bid History - Order 6 on mobile */}
-            <div className="order-6 lg:col-span-2">
-              <BidHistory 
-                listingId={listing.id} 
-                initialBids={bids || []} 
-              />
-            </div>
-
-            {/* Questions & Answers - Order 7 on mobile */}
-            <div className="order-7 lg:col-span-2">
-              <AuctionQuestions
-                listingId={listing.id}
-                isOwner={isOwner}
-                isLoggedIn={!!profile}
-              />
-            </div>
-
-            {/* Seller Info - Order 8 on mobile, shown in sidebar on desktop */}
-            <Card className="order-8">
-              <CardHeader>
-                <CardTitle>Seller</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                    {listing.profiles?.username?.charAt(0).toUpperCase() || 'U'}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold">
-                      @{listing.profiles?.username || 'unknown'}
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                      {listing.profiles?.username?.charAt(0).toUpperCase() || 'U'}
                     </div>
-                    <div className="text-sm text-muted-foreground mb-1">
-                      Seller
-                    </div>
-                    {sellerRating ? (
-                      <UserRatingDisplay
-                        rating={sellerRating.average_rating}
-                        reviewCount={sellerRating.review_count}
-                        size="sm"
-                      />
-                    ) : (
-                      <div className="text-xs text-muted-foreground">
-                        No reviews yet
+                    <div className="flex-1">
+                      <div className="font-semibold">
+                        @{listing.profiles?.username || 'unknown'}
                       </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Item Details - Order 9 on mobile, shown in sidebar on desktop */}
-            <Card className="order-9">
-              <CardHeader>
-                <CardTitle>Item Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span>Location:</span>
-                  <span className="font-medium">{listing.location}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Condition:</span>
-                  <span className="capitalize">{listing.condition.replace('_', ' ')}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Listed:</span>
-                  <span>{formatDateTime(listing.created_at!)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Ends:</span>
-                  <span>{formatDateTime(listing.end_time)}</span>
-                </div>
-                {listing.anti_sniping_seconds > 0 && (
-                  <div className="flex justify-between">
-                    <span>Anti-sniping:</span>
-                    <span>{listing.anti_sniping_seconds}s extension</span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Payment Preferences - Order 10 on mobile */}
-            {listing.profiles?.payment_preferences && 
-             listing.profiles.payment_preferences.length > 0 && (
-              <Card className="order-10 lg:col-span-2">
-                <CardHeader>
-                  <CardTitle>Payment Options</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    The seller accepts the following payment methods:
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {listing.profiles.payment_preferences.map((method) => (
-                      <Badge key={method} variant="secondary" className="text-sm">
-                        {formatPaymentMethod(method)}
-                      </Badge>
-                    ))}
+                      <div className="text-sm text-muted-foreground mb-1">
+                        Seller
+                      </div>
+                      {sellerRating ? (
+                        <UserRatingDisplay
+                          rating={sellerRating.average_rating}
+                          reviewCount={sellerRating.review_count}
+                          size="sm"
+                        />
+                      ) : (
+                        <div className="text-xs text-muted-foreground">
+                          No reviews yet
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
-            )}
+
+              {/* Item Details */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Item Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Location:</span>
+                    <span className="font-medium">{listing.location}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Condition:</span>
+                    <span className="capitalize">{listing.condition.replace('_', ' ')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Listed:</span>
+                    <span>{formatDateTime(listing.created_at!)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Ends:</span>
+                    <span>{formatDateTime(listing.end_time)}</span>
+                  </div>
+                  {listing.anti_sniping_seconds > 0 && (
+                    <div className="flex justify-between">
+                      <span>Anti-sniping:</span>
+                      <span>{listing.anti_sniping_seconds}s extension</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </main>
