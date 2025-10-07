@@ -1,25 +1,15 @@
 import Link from 'next/link'
-import { Search, User, Plus, Heart, Gavel, ChevronDown, Shield, Menu } from 'lucide-react'
+import { User, Plus, Heart, Shield } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { getUser, getUserProfile } from '@/lib/auth'
 import { UserNav } from '@/components/user-nav'
 import { SearchForm } from '@/components/search-form'
 import { NotificationsDropdown } from '@/components/notifications/notifications-dropdown'
 import { createClient } from '@/lib/supabase/server'
 import type { Tables } from '@/lib/database.types'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-} from '@/components/ui/dropdown-menu'
 import { MobileCategoryDialog } from '@/components/mobile-category-dialog'
+import { DesktopCategoryDropdown } from '@/components/desktop-category-dropdown'
 
 interface CategoryWithSubcategories extends Tables<'categories'> {
   subcategories?: Tables<'categories'>[]
@@ -150,72 +140,16 @@ export async function Header() {
       </header>
       
       {/* Category Navigation Bar */}
-      <nav className="bg-muted/30 sticky top-16 z-40 dropdown-container">
-        <div className="container dropdown-container relative">
+      <nav className="bg-muted/30 sticky top-16 z-40 border-b">
+        <div className="container py-3">
           {/* Mobile Category Dialog - Shown on small screens */}
-          <div className="md:hidden py-3">
+          <div className="md:hidden">
             <MobileCategoryDialog categories={categoriesWithSubs} />
           </div>
 
-          {/* Desktop Category Navigation - Hidden on small screens */}
-          <div className="hidden md:flex items-center space-x-8 py-3 overflow-x-auto dropdown-container">
-            <Link 
-              href="/"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
-            >
-              All Categories
-            </Link>
-            {categoriesWithSubs.map((category) => (
-              <div key={category.id} className="relative group">
-                <Link
-                  href={`/category/${category.slug}`}
-                  className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-200 whitespace-nowrap py-3 px-1 rounded-md hover:bg-muted/50"
-                >
-                  {category.name}
-                  {category.subcategories && category.subcategories.length > 0 && (
-                    <ChevronDown className="ml-1 h-3 w-3 transition-transform duration-200 group-hover:rotate-180" />
-                  )}
-                </Link>
-                
-                {/* Subcategory Dropdown - Enhanced visibility */}
-                {category.subcategories && category.subcategories.length > 0 && (
-                  <div 
-                    className="absolute top-full left-0 mt-2 min-w-[280px] bg-white/95 dark:bg-gray-900/95 border border-gray-200/80 dark:border-gray-700/80 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-out category-dropdown"
-                    style={{
-                      zIndex: 9999,
-                      position: 'absolute',
-                      backdropFilter: 'blur(16px) saturate(150%)',
-                      WebkitBackdropFilter: 'blur(16px) saturate(150%)',
-                      background: 'rgba(255, 255, 255, 0.97)',
-                      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-                    }}
-                  >
-                    {/* Overlay background for better contrast */}
-                    <div className="absolute inset-0 bg-white/90 dark:bg-gray-900/90 rounded-lg -z-10"></div>
-                    
-                    <div className="relative py-4 max-h-[70vh] overflow-y-auto">
-                      <Link
-                        href={`/category/${category.slug}`}
-                        className="block px-6 py-3 text-sm font-semibold text-gray-900 dark:text-gray-100 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-colors border-b border-gray-200/60 dark:border-gray-700/60 mb-2"
-                      >
-                        All {category.name}
-                      </Link>
-                      <div className="space-y-1">
-                        {category.subcategories.map((subcategory) => (
-                          <Link
-                            key={subcategory.id}
-                            href={`/category/${subcategory.slug}`}
-                            className="block px-6 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/60 dark:hover:bg-gray-800/60 transition-all duration-150 rounded-none"
-                          >
-                            {subcategory.name}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
+          {/* Desktop Category Dropdown - Hidden on small screens */}
+          <div className="hidden md:block">
+            <DesktopCategoryDropdown categories={categoriesWithSubs} />
           </div>
         </div>
       </nav>
