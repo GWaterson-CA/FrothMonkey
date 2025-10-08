@@ -8,9 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/server'
 import { getUserProfile, getUser } from '@/lib/auth'
 import { formatCurrency, formatDateTime, getImageUrl, isAuctionEnded } from '@/lib/utils'
-import { CountdownTimer } from '@/components/countdown-timer'
 import { BidHistory } from '@/components/bid-history'
-import { BidForm } from '@/components/bid-form'
 import { ListingImages } from '@/components/listing-images'
 import { AuctionQuestions } from '@/components/auction-questions'
 import { UserRatingDisplay } from '@/components/reviews/star-rating'
@@ -18,7 +16,7 @@ import { WatchlistToggleButton } from '@/components/account/watchlist-toggle-but
 import { ShareButton } from '@/components/share-button'
 import { ReportButton } from '@/components/report-button'
 import { AnalyticsTracker } from '@/components/analytics-tracker'
-import { AuthCTACard } from '@/components/auth-cta-card'
+import { CombinedBiddingCard } from '@/components/combined-bidding-card'
 
 // Helper function to format payment method labels
 function formatPaymentMethod(method: string): string {
@@ -244,53 +242,69 @@ export default async function ListingPage({ params }: ListingPageProps) {
                 title={listing.title}
               />
 
-              {/* Title, Badges, and Actions */}
-              <div className="space-y-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    {listing.categories && (
-                      <Badge variant="outline">{listing.categories.name}</Badge>
-                    )}
-                    {isActuallyLive && (
-                      <Badge variant="success">
-                        Live
-                      </Badge>
-                    )}
-                    {hasEnded && listing.status === 'live' && (
-                      <Badge variant="secondary">
-                        Auction ended
-                      </Badge>
-                    )}
-                    {!isActuallyLive && listing.status !== 'live' && (
-                      <Badge variant="secondary">
-                        {listing.status}
-                      </Badge>
-                    )}
-                    {listing.reserve_met && (
-                      <Badge variant="secondary">Reserve Met</Badge>
-                    )}
-                    {listing.buy_now_enabled && !listing.reserve_met && (
-                      <Badge variant="outline">Buy Now Available</Badge>
-                    )}
-                  </div>
-                  <h1 className="text-2xl md:text-3xl font-bold">{listing.title}</h1>
+              {/* Title and Badges */}
+              <div>
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  {listing.categories && (
+                    <Badge variant="outline">{listing.categories.name}</Badge>
+                  )}
+                  {isActuallyLive && (
+                    <Badge variant="success">
+                      Live
+                    </Badge>
+                  )}
+                  {hasEnded && listing.status === 'live' && (
+                    <Badge variant="secondary">
+                      Auction ended
+                    </Badge>
+                  )}
+                  {!isActuallyLive && listing.status !== 'live' && (
+                    <Badge variant="secondary">
+                      {listing.status}
+                    </Badge>
+                  )}
+                  {listing.reserve_met && (
+                    <Badge variant="secondary">Reserve Met</Badge>
+                  )}
+                  {listing.buy_now_enabled && !listing.reserve_met && (
+                    <Badge variant="outline">Buy Now Available</Badge>
+                  )}
                 </div>
+                <h1 className="text-2xl md:text-3xl font-bold">{listing.title}</h1>
+              </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-2">
-                  <WatchlistToggleButton 
-                    listingId={listing.id}
-                    userId={profile?.id}
-                  />
-                  <ShareButton 
-                    listingId={listing.id}
-                    title={listing.title}
-                  />
-                  <ReportButton 
-                    listingId={listing.id}
-                    userId={profile?.id}
-                  />
-                </div>
+              {/* Combined Bidding Card - Mobile Only */}
+              <div className="lg:hidden">
+                <CombinedBiddingCard
+                  listingId={listing.id}
+                  currentPrice={listing.current_price || listing.start_price}
+                  startPrice={listing.start_price}
+                  reservePrice={listing.reserve_price}
+                  reserveMet={listing.reserve_met}
+                  buyNowPrice={listing.buy_now_price}
+                  buyNowEnabled={listing.buy_now_enabled}
+                  endTime={listing.end_time}
+                  isLive={isActuallyLive}
+                  canBid={!!canBid}
+                  isLoggedIn={!!user}
+                  hasProfile={!!profile}
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-2">
+                <WatchlistToggleButton 
+                  listingId={listing.id}
+                  userId={profile?.id}
+                />
+                <ShareButton 
+                  listingId={listing.id}
+                  title={listing.title}
+                />
+                <ReportButton 
+                  listingId={listing.id}
+                  userId={profile?.id}
+                />
               </div>
 
               {/* Description */}
@@ -345,70 +359,23 @@ export default async function ListingPage({ params }: ListingPageProps) {
 
             {/* Right Sidebar */}
             <div className="space-y-6">
-              {/* Current Bid Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Current Bid</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-3xl font-bold text-primary">
-                    {formatCurrency(listing.current_price || listing.start_price)}
-                  </div>
-                  
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Starting bid:</span>
-                      <span>{formatCurrency(listing.start_price)}</span>
-                    </div>
-                    {listing.reserve_price && (
-                      <div className="flex justify-between">
-                        <span>Reserve price:</span>
-                        <span>
-                          {listing.reserve_met ? 
-                            formatCurrency(listing.reserve_price) : 
-                            'Not disclosed'
-                          }
-                        </span>
-                      </div>
-                    )}
-                    {listing.buy_now_price && !listing.reserve_met && (
-                      <div className="flex justify-between">
-                        <span>Buy now price:</span>
-                        <span className="font-semibold text-primary">
-                          {formatCurrency(listing.buy_now_price)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {isActuallyLive && (
-                    <div className="pt-2 border-t">
-                      <div className="text-sm text-muted-foreground mb-2">
-                        Time remaining:
-                      </div>
-                      <CountdownTimer endTime={listing.end_time} />
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Bidding Form */}
-              {canBid && (
-                <BidForm 
+              {/* Combined Bidding Card - Desktop Only */}
+              <div className="hidden lg:block">
+                <CombinedBiddingCard
                   listingId={listing.id}
                   currentPrice={listing.current_price || listing.start_price}
-                  buyNowPrice={listing.buy_now_price}
+                  startPrice={listing.start_price}
+                  reservePrice={listing.reserve_price}
                   reserveMet={listing.reserve_met}
+                  buyNowPrice={listing.buy_now_price}
+                  buyNowEnabled={listing.buy_now_enabled}
+                  endTime={listing.end_time}
+                  isLive={isActuallyLive}
+                  canBid={!!canBid}
+                  isLoggedIn={!!user}
+                  hasProfile={!!profile}
                 />
-              )}
-
-              {/* Auth CTA for non-logged-in users OR incomplete profile */}
-              {!profile && isActuallyLive && (
-                <AuthCTACard 
-                  isAuctionActive={true} 
-                  isProfileIncomplete={!!user && !profile}
-                />
-              )}
+              </div>
 
               {/* Seller Info */}
               <Card>
