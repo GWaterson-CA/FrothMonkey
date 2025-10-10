@@ -46,8 +46,16 @@ function getEmailSafeImageUrl(url: string | null | undefined, appUrl: string, su
         
         // If decoded URL is relative path without storage prefix, assume it's in listing-images bucket
         const cleanPath = decodedUrl.startsWith('/') ? decodedUrl.slice(1) : decodedUrl
-        const finalUrl = `${supabaseUrl}/storage/v1/object/public/listing-images/${cleanPath}`
+        
+        // Check if path has an extension
+        const hasExtension = /\.(jpg|jpeg|png|gif|webp)$/i.test(cleanPath)
+        const pathWithExtension = hasExtension ? cleanPath : `${cleanPath}.jpg`
+        
+        const finalUrl = `${supabaseUrl}/storage/v1/object/public/listing-images/${pathWithExtension}`
         console.log(`[IMAGE URL DEBUG] Constructed listing-images URL: ${finalUrl}`)
+        if (!hasExtension) {
+          console.log(`[IMAGE URL DEBUG] Added .jpg extension to decoded path`)
+        }
         return finalUrl
       }
     } catch (error) {
@@ -71,8 +79,18 @@ function getEmailSafeImageUrl(url: string | null | undefined, appUrl: string, su
   
   // If it's a relative path, assume it's in listing-images bucket
   const cleanPath = url.startsWith('/') ? url.slice(1) : url
-  const finalUrl = `${supabaseUrl}/storage/v1/object/public/listing-images/${cleanPath}`
+  
+  // Check if path already has an extension
+  const hasExtension = /\.(jpg|jpeg|png|gif|webp)$/i.test(cleanPath)
+  
+  // If no extension, assume .jpg (most common for listing images)
+  const pathWithExtension = hasExtension ? cleanPath : `${cleanPath}.jpg`
+  
+  const finalUrl = `${supabaseUrl}/storage/v1/object/public/listing-images/${pathWithExtension}`
   console.log(`[IMAGE URL DEBUG] Relative path converted: ${finalUrl}`)
+  if (!hasExtension) {
+    console.log(`[IMAGE URL DEBUG] Added .jpg extension to path`)
+  }
   return finalUrl
 }
 
