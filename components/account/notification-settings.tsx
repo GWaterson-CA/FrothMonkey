@@ -7,6 +7,13 @@ import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/components/ui/use-toast'
 import { Save } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 interface NotificationPreferences {
   email_notifications: boolean
@@ -17,8 +24,8 @@ interface NotificationPreferences {
   listing_reported: boolean
   bid_outbid: boolean
   auction_won: boolean
-  time_warning_24h: boolean
-  time_warning_2h: boolean
+  time_warning_enabled: boolean
+  time_warning_hours: number
 }
 
 const defaultPreferences: NotificationPreferences = {
@@ -30,8 +37,8 @@ const defaultPreferences: NotificationPreferences = {
   listing_reported: true,
   bid_outbid: true,
   auction_won: true,
-  time_warning_24h: true,
-  time_warning_2h: true,
+  time_warning_enabled: true,
+  time_warning_hours: 24,
 }
 
 export function NotificationSettings() {
@@ -96,7 +103,7 @@ export function NotificationSettings() {
     }
   }
 
-  const updateSetting = (key: keyof NotificationPreferences, value: boolean) => {
+  const updateSetting = (key: keyof NotificationPreferences, value: boolean | number) => {
     setSettings(prev => ({ ...prev, [key]: value }))
   }
 
@@ -240,31 +247,46 @@ export function NotificationSettings() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>24 Hour Warning</Label>
+              <Label>Auction Ending Warning</Label>
               <p className="text-sm text-muted-foreground">
-                When an auction you're bidding on has 24 hours left
+                Notify me when an auction I'm bidding on is ending soon
               </p>
             </div>
             <Switch
-              checked={settings.time_warning_24h}
-              onCheckedChange={(checked) => updateSetting('time_warning_24h', checked)}
+              checked={settings.time_warning_enabled}
+              onCheckedChange={(checked) => updateSetting('time_warning_enabled', checked)}
               disabled={!settings.email_notifications}
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>2 Hour Warning</Label>
-              <p className="text-sm text-muted-foreground">
-                When an auction you're bidding on has 2 hours left
-              </p>
+          {settings.time_warning_enabled && (
+            <div className="flex items-center justify-between pl-6 border-l-2 border-muted">
+              <div className="space-y-0.5">
+                <Label>Warning Timeframe</Label>
+                <p className="text-sm text-muted-foreground">
+                  How far in advance should we notify you?
+                </p>
+              </div>
+              <Select
+                value={settings.time_warning_hours.toString()}
+                onValueChange={(value) => updateSetting('time_warning_hours', parseInt(value))}
+                disabled={!settings.email_notifications}
+              >
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 hour</SelectItem>
+                  <SelectItem value="2">2 hours</SelectItem>
+                  <SelectItem value="3">3 hours</SelectItem>
+                  <SelectItem value="6">6 hours</SelectItem>
+                  <SelectItem value="12">12 hours</SelectItem>
+                  <SelectItem value="24">24 hours</SelectItem>
+                  <SelectItem value="48">48 hours</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Switch
-              checked={settings.time_warning_2h}
-              onCheckedChange={(checked) => updateSetting('time_warning_2h', checked)}
-              disabled={!settings.email_notifications}
-            />
-          </div>
+          )}
         </div>
       </div>
 
@@ -276,10 +298,10 @@ export function NotificationSettings() {
       </div>
 
       <div className="text-sm text-muted-foreground bg-muted/30 p-4 rounded-lg">
-        <p className="font-medium mb-2">📧 Email Integration Coming Soon</p>
+        <p className="font-medium mb-2">📧 Email Notifications Active</p>
         <p>
-          Email notifications are currently logged to the console for development. 
-          Integration with email providers like Resend or SendGrid will be added in a future update.
+          Email notifications are powered by Resend and will be sent to your account email address.
+          Make sure to keep your email address up to date in your account settings.
         </p>
       </div>
     </div>

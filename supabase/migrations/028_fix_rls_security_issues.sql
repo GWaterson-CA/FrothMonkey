@@ -61,3 +61,5 @@ $$ LANGUAGE plpgsql;
 -- Grant execute permission to authenticated and anonymous users
 GRANT EXECUTE ON FUNCTION record_share_event(TEXT, UUID, UUID, INET, TEXT) TO authenticated, anon;
 
+
+

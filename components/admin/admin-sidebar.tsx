@@ -8,13 +8,15 @@ import {
   Users, 
   Package, 
   Home,
-  Shield
+  Shield,
+  Mail
 } from 'lucide-react'
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: BarChart3 },
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Listings', href: '/admin/listings', icon: Package },
+  { name: 'Email Test', href: '/admin/email-test', icon: Mail },
   { name: 'Back to Site', href: '/', icon: Home },
 ]
 
