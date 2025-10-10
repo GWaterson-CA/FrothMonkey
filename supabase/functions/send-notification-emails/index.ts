@@ -119,7 +119,17 @@ serve(async (req) => {
     const recipientName = profile?.full_name || profile?.username || 'User'
     const listingTitle = listingData?.title || 'Unknown Listing'
     const listingUrl = `${appUrl}/listing/${notification.listing_id}`
-    const listingImage = listingData?.cover_image_url || `${appUrl}/placeholder-image.jpg`
+    
+    // Handle listing image - ensure full URL
+    let listingImage = `${appUrl}/placeholder-image.jpg` // Default fallback
+    if (listingData?.cover_image_url) {
+      // If it's already a full URL, use it; otherwise prepend appUrl
+      listingImage = listingData.cover_image_url.startsWith('http') 
+        ? listingData.cover_image_url 
+        : `${appUrl}${listingData.cover_image_url}`
+    }
+    
+    console.log(`Listing image URL: ${listingImage}`)
 
     // Build email content based on notification type
     let subject = ''
@@ -138,9 +148,10 @@ serve(async (req) => {
               body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
               .container { max-width: 600px; margin: 0 auto; padding: 20px; }
               .header { background-color: #3b82f6; color: white; padding: 20px; text-align: center; }
+              .logo { max-width: 150px; height: auto; margin-bottom: 15px; }
               .content { padding: 20px; background-color: #f9fafb; }
               .listing-preview { background-color: white; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; }
-              .listing-image { width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin-bottom: 15px; }
+              .listing-image { width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto; }
               .listing-title { font-size: 20px; font-weight: bold; color: #1a1a1a; margin: 0; }
               .details { background-color: white; padding: 15px; margin: 20px 0; border-radius: 5px; }
               .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
@@ -151,6 +162,7 @@ serve(async (req) => {
           <body>
             <div class="container">
               <div class="header">
+                <img src="https://frothmonkey.com/FrothMonkey%20Logo%20Blue.png" alt="FrothMonkey" class="logo" />
                 <h1>😔 You've Been Outbid!</h1>
               </div>
               <div class="content">
@@ -203,9 +215,10 @@ serve(async (req) => {
               body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
               .container { max-width: 600px; margin: 0 auto; padding: 20px; }
               .header { background-color: #f59e0b; color: white; padding: 20px; text-align: center; }
+              .logo { max-width: 150px; height: auto; margin-bottom: 15px; }
               .content { padding: 20px; background-color: #f9fafb; }
               .listing-preview { background-color: white; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; }
-              .listing-image { width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin-bottom: 15px; }
+              .listing-image { width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto; }
               .listing-title { font-size: 20px; font-weight: bold; color: #1a1a1a; margin: 0; }
               .details { background-color: white; padding: 15px; margin: 20px 0; border-radius: 5px; }
               .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
@@ -216,6 +229,7 @@ serve(async (req) => {
           <body>
             <div class="container">
               <div class="header">
+                <img src="https://frothmonkey.com/FrothMonkey%20Logo%20Blue.png" alt="FrothMonkey" class="logo" />
                 <h1>⏰ Auction Ending Soon!</h1>
               </div>
               <div class="content">
@@ -269,9 +283,10 @@ serve(async (req) => {
               body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
               .container { max-width: 600px; margin: 0 auto; padding: 20px; }
               .header { background-color: #10b981; color: white; padding: 20px; text-align: center; }
+              .logo { max-width: 150px; height: auto; margin-bottom: 15px; }
               .content { padding: 20px; background-color: #f9fafb; }
               .listing-preview { background-color: white; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; }
-              .listing-image { width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin-bottom: 15px; }
+              .listing-image { width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto; }
               .listing-title { font-size: 20px; font-weight: bold; color: #1a1a1a; margin: 0; }
               .details { background-color: white; padding: 15px; margin: 20px 0; border-radius: 5px; }
               .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
@@ -283,6 +298,7 @@ serve(async (req) => {
           <body>
             <div class="container">
               <div class="header">
+                <img src="https://frothmonkey.com/FrothMonkey%20Logo%20Blue.png" alt="FrothMonkey" class="logo" />
                 <h1>🎉 Congratulations! You Won!</h1>
               </div>
               <div class="content">
@@ -336,9 +352,10 @@ serve(async (req) => {
               body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
               .container { max-width: 600px; margin: 0 auto; padding: 20px; }
               .header { background-color: ${reserveMet ? '#10b981' : '#6b7280'}; color: white; padding: 20px; text-align: center; }
+              .logo { max-width: 150px; height: auto; margin-bottom: 15px; }
               .content { padding: 20px; background-color: #f9fafb; }
               .listing-preview { background-color: white; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; }
-              .listing-image { width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin-bottom: 15px; }
+              .listing-image { width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto; }
               .listing-title { font-size: 20px; font-weight: bold; color: #1a1a1a; margin: 0; }
               .details { background-color: white; padding: 15px; margin: 20px 0; border-radius: 5px; }
               .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
@@ -350,6 +367,7 @@ serve(async (req) => {
           <body>
             <div class="container">
               <div class="header">
+                <img src="https://frothmonkey.com/FrothMonkey%20Logo%20Blue.png" alt="FrothMonkey" class="logo" />
                 <h1>${reserveMet ? '🎉 Your Auction Sold!' : hadBids ? '📊 Your Auction Ended' : '📭 Your Auction Ended'}</h1>
               </div>
               <div class="content">
