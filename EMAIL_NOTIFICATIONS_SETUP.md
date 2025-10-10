@@ -117,8 +117,14 @@ Users can customize their notification preferences at `/account/settings`:
 
 ### 1. Outbid Notification (`bid_outbid`)
 - **Trigger:** When a user who had the highest bid is outbid by another user
-- **Sent Once:** Yes (only the first time they're outbid per listing)
+- **Sent Each Time:** Yes (users receive an email EVERY TIME they are outbid)
 - **User Preference:** `bid_outbid`
+- **Example Flow:**
+  - User 1 bids $100
+  - User 2 bids $150 → User 1 gets email ✅
+  - User 1 bids $200 → User 2 gets email ✅
+  - User 2 bids $250 → User 1 gets email ✅
+  - And so on...
 
 ### 2. Time Warning Notifications (`time_warning_Xh`)
 - **Trigger:** When an auction is X hours away from ending (based on user preference)

@@ -97,7 +97,7 @@ All templates feature:
 ### 1. Outbid Notification
 **Trigger:** User is outbid by another bidder  
 **Sent to:** Previous highest bidder  
-**Sent once:** Yes (first time only per listing)  
+**Sent each time:** Yes (EVERY TIME they are outbid)  
 **Preference:** `bid_outbid`
 
 **Email includes:**
@@ -105,6 +105,12 @@ All templates feature:
 - Previous bid amount
 - New (higher) bid amount
 - Button to place a higher bid
+
+**Example:**
+- User 1 bids $100
+- User 2 bids $150 → User 1 gets email ✅
+- User 1 bids $200 → User 2 gets email ✅
+- User 2 bids $250 → User 1 gets email ✅
 
 ### 2. Time Warning Notifications
 **Trigger:** Auction is X hours from ending (user-configurable)  

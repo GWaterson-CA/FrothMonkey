@@ -10,6 +10,7 @@ export async function POST(request: Request) {
     
     const { 
       userId, 
+      recipientEmail,
       notificationType, 
       notificationData,
       testMode = false 
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
       )
     }
 
-    // Get user profile and email
+    // Get user profile
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('username, full_name, notification_preferences')
@@ -38,15 +39,19 @@ export async function POST(request: Request) {
       )
     }
 
-    // Get user email from auth
-    const { data: { user }, error: authError } = await supabase.auth.admin.getUserById(userId)
-    
-    if (authError || !user?.email) {
-      console.error('Error fetching user email:', authError)
-      return NextResponse.json(
-        { error: 'User email not found' },
-        { status: 404 }
-      )
+    // Use provided email or fetch from auth if not provided (for backwards compatibility)
+    let userEmail = recipientEmail
+    if (!userEmail) {
+      const { data: { user }, error: authError } = await supabase.auth.admin.getUserById(userId)
+      
+      if (authError || !user?.email) {
+        console.error('Error fetching user email:', authError)
+        return NextResponse.json(
+          { error: 'User email not found' },
+          { status: 404 }
+        )
+      }
+      userEmail = user.email
     }
 
     // Check if user has email notifications enabled (unless test mode)
@@ -69,7 +74,7 @@ export async function POST(request: Request) {
     const recipientName = profile.full_name || profile.username || 'User'
     
     const result = await sendNotificationEmail({
-      recipientEmail: user.email,
+      recipientEmail: userEmail,
       recipientName,
       notificationType,
       data: notificationData
