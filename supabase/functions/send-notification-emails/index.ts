@@ -109,7 +109,7 @@ serve(async (req) => {
     if (notification.listing_id) {
       const { data } = await supabase
         .from('listings')
-        .select('id, title, current_price')
+        .select('id, title, current_price, cover_image_url')
         .eq('id', notification.listing_id)
         .single()
       
@@ -119,6 +119,7 @@ serve(async (req) => {
     const recipientName = profile?.full_name || profile?.username || 'User'
     const listingTitle = listingData?.title || 'Unknown Listing'
     const listingUrl = `${appUrl}/listing/${notification.listing_id}`
+    const listingImage = listingData?.cover_image_url || `${appUrl}/placeholder-image.jpg`
 
     // Build email content based on notification type
     let subject = ''
@@ -138,6 +139,9 @@ serve(async (req) => {
               .container { max-width: 600px; margin: 0 auto; padding: 20px; }
               .header { background-color: #3b82f6; color: white; padding: 20px; text-align: center; }
               .content { padding: 20px; background-color: #f9fafb; }
+              .listing-preview { background-color: white; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; }
+              .listing-image { width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin-bottom: 15px; }
+              .listing-title { font-size: 20px; font-weight: bold; color: #1a1a1a; margin: 0; }
               .details { background-color: white; padding: 15px; margin: 20px 0; border-radius: 5px; }
               .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
               .button { display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
@@ -152,6 +156,10 @@ serve(async (req) => {
               <div class="content">
                 <p>Hi ${recipientName},</p>
                 <p>Someone has placed a higher bid on an auction you were winning. Don't let it slip away!</p>
+                <div class="listing-preview">
+                  <img src="${listingImage}" alt="${listingTitle}" class="listing-image" />
+                  <h2 class="listing-title">${listingTitle}</h2>
+                </div>
                 <div class="details">
                   <div class="detail-row">
                     <span><strong>Listing:</strong></span>
@@ -178,6 +186,231 @@ serve(async (req) => {
           </body>
         </html>
       `
+    } else if (notification.type.startsWith('time_warning_')) {
+      // Extract hours from notification type (e.g., 'time_warning_24h' -> 24)
+      const hoursMatch = notification.type.match(/time_warning_(\d+)h/)
+      const hoursRemaining = hoursMatch ? parseInt(hoursMatch[1]) : 0
+      const hourText = hoursRemaining === 1 ? 'hour' : 'hours'
+      const isLeadingBidder = notification.metadata?.is_leading_bidder || false
+      const currentBid = listingData?.current_price || 0
+
+      subject = `⏰ ${hoursRemaining} ${hourText} left on "${listingTitle}"`
+      htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background-color: #f59e0b; color: white; padding: 20px; text-align: center; }
+              .content { padding: 20px; background-color: #f9fafb; }
+              .listing-preview { background-color: white; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; }
+              .listing-image { width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin-bottom: 15px; }
+              .listing-title { font-size: 20px; font-weight: bold; color: #1a1a1a; margin: 0; }
+              .details { background-color: white; padding: 15px; margin: 20px 0; border-radius: 5px; }
+              .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
+              .button { display: inline-block; background-color: #f59e0b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+              .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 14px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>⏰ Auction Ending Soon!</h1>
+              </div>
+              <div class="content">
+                <p>Hi ${recipientName},</p>
+                <p>An auction you're bidding on is ending in ${hoursRemaining} ${hourText}!
+                ${isLeadingBidder ? " You're currently the highest bidder." : " Time to make your move!"}</p>
+                <div class="listing-preview">
+                  <img src="${listingImage}" alt="${listingTitle}" class="listing-image" />
+                  <h2 class="listing-title">${listingTitle}</h2>
+                </div>
+                <div class="details">
+                  <div class="detail-row">
+                    <span><strong>Listing:</strong></span>
+                    <span>${listingTitle}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span><strong>Current Bid:</strong></span>
+                    <span>$${currentBid.toFixed(2)}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span><strong>Time Remaining:</strong></span>
+                    <span>${hoursRemaining} ${hourText}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span><strong>Status:</strong></span>
+                    <span>${isLeadingBidder ? '✅ You\'re winning!' : '⚠️ You\'re not winning'}</span>
+                  </div>
+                </div>
+                <div style="text-align: center;">
+                  <a href="${listingUrl}" class="button">View Auction</a>
+                </div>
+              </div>
+              <div class="footer">
+                <p>You're receiving this because you have email notifications enabled.</p>
+                <p><a href="${appUrl}/account/settings">Manage your notification preferences</a></p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `
+    } else if (notification.type === 'auction_won') {
+      const finalBid = notification.metadata?.final_bid || listingData?.current_price || 0
+      const sellerName = notification.metadata?.seller_name || 'the seller'
+
+      subject = `🎉 Congratulations! You won "${listingTitle}"`
+      htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background-color: #10b981; color: white; padding: 20px; text-align: center; }
+              .content { padding: 20px; background-color: #f9fafb; }
+              .listing-preview { background-color: white; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; }
+              .listing-image { width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin-bottom: 15px; }
+              .listing-title { font-size: 20px; font-weight: bold; color: #1a1a1a; margin: 0; }
+              .details { background-color: white; padding: 15px; margin: 20px 0; border-radius: 5px; }
+              .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
+              .button { display: inline-block; background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+              .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 14px; }
+              .next-steps { background-color: #ecfdf5; padding: 15px; border-left: 4px solid #10b981; margin: 20px 0; border-radius: 4px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>🎉 Congratulations! You Won!</h1>
+              </div>
+              <div class="content">
+                <p>Hi ${recipientName},</p>
+                <p>Congratulations! You've won the auction and can now arrange delivery or pickup with ${sellerName}.</p>
+                <div class="listing-preview">
+                  <img src="${listingImage}" alt="${listingTitle}" class="listing-image" />
+                  <h2 class="listing-title">${listingTitle}</h2>
+                </div>
+                <div class="details">
+                  <div class="detail-row">
+                    <span><strong>Listing:</strong></span>
+                    <span>${listingTitle}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span><strong>Your Winning Bid:</strong></span>
+                    <span>$${finalBid.toFixed(2)}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span><strong>Seller:</strong></span>
+                    <span>${sellerName}</span>
+                  </div>
+                </div>
+                <div style="text-align: center;">
+                  <a href="${listingUrl}" class="button">Contact Seller</a>
+                </div>
+                <div class="next-steps">
+                  <strong>Next Steps:</strong> Connect with the seller through our messaging system to arrange payment and delivery. Remember to leave a review after the transaction!
+                </div>
+              </div>
+              <div class="footer">
+                <p>You're receiving this because you have email notifications enabled.</p>
+                <p><a href="${appUrl}/account/settings">Manage your notification preferences</a></p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `
+    } else if (notification.type === 'listing_ended_seller') {
+      const finalBid = notification.metadata?.final_bid || 0
+      const buyerName = notification.metadata?.buyer_name || 'the buyer'
+      const reserveMet = notification.metadata?.reserve_met || false
+      const hadBids = notification.metadata?.had_bids || false
+
+      subject = reserveMet ? `🎉 Your auction sold: "${listingTitle}"` : `📊 Your auction ended: "${listingTitle}"`
+      htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background-color: ${reserveMet ? '#10b981' : '#6b7280'}; color: white; padding: 20px; text-align: center; }
+              .content { padding: 20px; background-color: #f9fafb; }
+              .listing-preview { background-color: white; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; }
+              .listing-image { width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin-bottom: 15px; }
+              .listing-title { font-size: 20px; font-weight: bold; color: #1a1a1a; margin: 0; }
+              .details { background-color: white; padding: 15px; margin: 20px 0; border-radius: 5px; }
+              .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
+              .button { display: inline-block; background-color: ${reserveMet ? '#10b981' : '#6b7280'}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+              .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 14px; }
+              .next-steps { background-color: ${reserveMet ? '#ecfdf5' : '#f3f4f6'}; padding: 15px; border-left: 4px solid ${reserveMet ? '#10b981' : '#6b7280'}; margin: 20px 0; border-radius: 4px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>${reserveMet ? '🎉 Your Auction Sold!' : hadBids ? '📊 Your Auction Ended' : '📭 Your Auction Ended'}</h1>
+              </div>
+              <div class="content">
+                <p>Hi ${recipientName},</p>
+                <p>${reserveMet 
+                  ? `Congratulations! Your auction has ended successfully and your item sold to ${buyerName}.`
+                  : hadBids
+                  ? 'Your auction has ended. The reserve price was not met, but you can review the bids and contact the highest bidder if you wish.'
+                  : 'Your auction has ended with no bids.'}</p>
+                <div class="listing-preview">
+                  <img src="${listingImage}" alt="${listingTitle}" class="listing-image" />
+                  <h2 class="listing-title">${listingTitle}</h2>
+                </div>
+                ${hadBids ? `
+                <div class="details">
+                  <div class="detail-row">
+                    <span><strong>Listing:</strong></span>
+                    <span>${listingTitle}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span><strong>Final Bid:</strong></span>
+                    <span>$${finalBid.toFixed(2)}</span>
+                  </div>
+                  ${reserveMet ? `
+                  <div class="detail-row">
+                    <span><strong>Highest Bidder:</strong></span>
+                    <span>${buyerName}</span>
+                  </div>
+                  ` : ''}
+                  <div class="detail-row">
+                    <span><strong>Status:</strong></span>
+                    <span>${reserveMet ? '✅ Sold - Reserve Met' : '⚠️ Reserve Not Met'}</span>
+                  </div>
+                </div>
+                ` : ''}
+                <div style="text-align: center;">
+                  <a href="${listingUrl}" class="button">View Listing Details</a>
+                </div>
+                ${reserveMet ? `
+                <div class="next-steps">
+                  <strong>Next Steps:</strong> You can now exchange contact information with the buyer through our messaging system.
+                </div>
+                ` : ''}
+              </div>
+              <div class="footer">
+                <p>You're receiving this because you have email notifications enabled.</p>
+                <p><a href="${appUrl}/account/settings">Manage your notification preferences</a></p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `
+    }
+
+    // If no email content was generated, return error
+    if (!htmlContent || !subject) {
+      console.error(`No email template for notification type: ${notification.type}`)
+      return new Response(
+        JSON.stringify({ error: 'No email template for this notification type', type: notification.type }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
     // Send email via Resend
@@ -212,8 +445,9 @@ serve(async (req) => {
     )
   } catch (error) {
     console.error('Error in send-notification-emails function:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
