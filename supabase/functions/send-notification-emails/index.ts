@@ -9,6 +9,58 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Helper function to get email-safe image URLs
+// Extracts real Supabase Storage URLs from Next.js image optimizer paths
+function getEmailSafeImageUrl(url: string | null | undefined, appUrl: string): string {
+  const placeholderUrl = `${appUrl}/placeholder-image.jpg`
+  
+  // If no URL provided, return placeholder
+  if (!url) {
+    return placeholderUrl
+  }
+  
+  // Check if it's a Next.js image optimizer URL (_next/image?url=...)
+  if (url.includes('_next/image')) {
+    try {
+      // Extract the url parameter from the query string
+      const urlMatch = url.match(/[?&]url=([^&]+)/)
+      if (urlMatch && urlMatch[1]) {
+        const decodedUrl = decodeURIComponent(urlMatch[1])
+        console.log(`Decoded Next.js image URL: ${decodedUrl}`)
+        
+        // If decoded URL is relative, prepend appUrl
+        if (decodedUrl.startsWith('/')) {
+          return `${appUrl}${decodedUrl}`
+        }
+        
+        // If it's already a full URL, return it
+        if (decodedUrl.startsWith('http')) {
+          return decodedUrl
+        }
+        
+        // Otherwise prepend appUrl
+        return `${appUrl}/${decodedUrl}`
+      }
+    } catch (error) {
+      console.error('Error parsing Next.js image URL:', error)
+      return placeholderUrl
+    }
+  }
+  
+  // If it's a relative path, prepend appUrl
+  if (url.startsWith('/')) {
+    return `${appUrl}${url}`
+  }
+  
+  // If it's already a full URL, return it
+  if (url.startsWith('http')) {
+    return url
+  }
+  
+  // Otherwise prepend appUrl
+  return `${appUrl}/${url}`
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -120,16 +172,9 @@ serve(async (req) => {
     const listingTitle = listingData?.title || 'Unknown Listing'
     const listingUrl = `${appUrl}/listing/${notification.listing_id}`
     
-    // Handle listing image - ensure full URL
-    let listingImage = `${appUrl}/placeholder-image.jpg` // Default fallback
-    if (listingData?.cover_image_url) {
-      // If it's already a full URL, use it; otherwise prepend appUrl
-      listingImage = listingData.cover_image_url.startsWith('http') 
-        ? listingData.cover_image_url 
-        : `${appUrl}${listingData.cover_image_url}`
-    }
-    
-    console.log(`Listing image URL: ${listingImage}`)
+    // Get email-safe image URL (handles Next.js image optimizer URLs)
+    const listingImage = getEmailSafeImageUrl(listingData?.cover_image_url, appUrl)
+    console.log(`Email-safe listing image URL: ${listingImage}`)
 
     // Build email content based on notification type
     let subject = ''
