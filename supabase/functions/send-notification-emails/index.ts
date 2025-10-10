@@ -11,11 +11,14 @@ const corsHeaders = {
 
 // Helper function to get email-safe image URLs
 // Extracts real Supabase Storage URLs from Next.js image optimizer paths
-function getEmailSafeImageUrl(url: string | null | undefined, appUrl: string): string {
+function getEmailSafeImageUrl(url: string | null | undefined, appUrl: string, supabaseUrl: string): string {
   const placeholderUrl = `${appUrl}/placeholder-image.jpg`
+  
+  console.log(`[IMAGE URL DEBUG] Original URL: ${url}`)
   
   // If no URL provided, return placeholder
   if (!url) {
+    console.log('[IMAGE URL DEBUG] No URL provided, using placeholder')
     return placeholderUrl
   }
   
@@ -26,39 +29,51 @@ function getEmailSafeImageUrl(url: string | null | undefined, appUrl: string): s
       const urlMatch = url.match(/[?&]url=([^&]+)/)
       if (urlMatch && urlMatch[1]) {
         const decodedUrl = decodeURIComponent(urlMatch[1])
-        console.log(`Decoded Next.js image URL: ${decodedUrl}`)
-        
-        // If decoded URL is relative, prepend appUrl
-        if (decodedUrl.startsWith('/')) {
-          return `${appUrl}${decodedUrl}`
-        }
+        console.log(`[IMAGE URL DEBUG] Decoded from Next.js optimizer: ${decodedUrl}`)
         
         // If it's already a full URL, return it
         if (decodedUrl.startsWith('http')) {
+          console.log(`[IMAGE URL DEBUG] Already full URL: ${decodedUrl}`)
           return decodedUrl
         }
         
-        // Otherwise prepend appUrl
-        return `${appUrl}/${decodedUrl}`
+        // If it's a Supabase storage path, construct full URL
+        if (decodedUrl.includes('/storage/v1/object/public/')) {
+          const finalUrl = decodedUrl.startsWith('/') ? `${supabaseUrl}${decodedUrl}` : `${supabaseUrl}/${decodedUrl}`
+          console.log(`[IMAGE URL DEBUG] Constructed Supabase URL: ${finalUrl}`)
+          return finalUrl
+        }
+        
+        // If decoded URL is relative path without storage prefix, assume it's in listing-images bucket
+        const cleanPath = decodedUrl.startsWith('/') ? decodedUrl.slice(1) : decodedUrl
+        const finalUrl = `${supabaseUrl}/storage/v1/object/public/listing-images/${cleanPath}`
+        console.log(`[IMAGE URL DEBUG] Constructed listing-images URL: ${finalUrl}`)
+        return finalUrl
       }
     } catch (error) {
-      console.error('Error parsing Next.js image URL:', error)
+      console.error('[IMAGE URL DEBUG] Error parsing Next.js image URL:', error)
       return placeholderUrl
     }
   }
   
-  // If it's a relative path, prepend appUrl
-  if (url.startsWith('/')) {
-    return `${appUrl}${url}`
-  }
-  
   // If it's already a full URL, return it
   if (url.startsWith('http')) {
+    console.log(`[IMAGE URL DEBUG] Full URL: ${url}`)
     return url
   }
   
-  // Otherwise prepend appUrl
-  return `${appUrl}/${url}`
+  // If it's a Supabase storage path
+  if (url.includes('/storage/v1/object/public/')) {
+    const finalUrl = url.startsWith('/') ? `${supabaseUrl}${url}` : `${supabaseUrl}/${url}`
+    console.log(`[IMAGE URL DEBUG] Supabase storage path: ${finalUrl}`)
+    return finalUrl
+  }
+  
+  // If it's a relative path, assume it's in listing-images bucket
+  const cleanPath = url.startsWith('/') ? url.slice(1) : url
+  const finalUrl = `${supabaseUrl}/storage/v1/object/public/listing-images/${cleanPath}`
+  console.log(`[IMAGE URL DEBUG] Relative path converted: ${finalUrl}`)
+  return finalUrl
 }
 
 serve(async (req) => {
@@ -173,8 +188,8 @@ serve(async (req) => {
     const listingUrl = `${appUrl}/listing/${notification.listing_id}`
     
     // Get email-safe image URL (handles Next.js image optimizer URLs)
-    const listingImage = getEmailSafeImageUrl(listingData?.cover_image_url, appUrl)
-    console.log(`Email-safe listing image URL: ${listingImage}`)
+    const listingImage = getEmailSafeImageUrl(listingData?.cover_image_url, appUrl, supabaseUrl)
+    console.log(`✅ Final email image URL: ${listingImage}`)
 
     // Build email content based on notification type
     let subject = ''
