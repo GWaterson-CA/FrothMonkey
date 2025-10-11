@@ -69,7 +69,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                 Reserve Met
               </Badge>
             )}
-            {listing.buy_now_enabled && (
+            {listing.buy_now_enabled && !listing.reserve_met && (
               <Badge variant="outline" className="text-xs bg-background/80">
                 Buy Now
               </Badge>
@@ -111,7 +111,7 @@ export function ListingCard({ listing }: ListingCardProps) {
             </span>
           </div>
           
-          {listing.buy_now_price && (
+          {listing.buy_now_price && !listing.reserve_met && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Buy now</span>
               <span className="font-semibold text-primary">
