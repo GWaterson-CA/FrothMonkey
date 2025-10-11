@@ -1,7 +1,15 @@
+import { Metadata } from 'next'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { AccountSidebar } from '@/components/account/account-sidebar'
 import { requireProfile } from '@/lib/auth'
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 export default async function AccountLayout({
   children,

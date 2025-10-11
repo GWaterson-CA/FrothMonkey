@@ -8,6 +8,9 @@ import Image from 'next/image'
 export const metadata: Metadata = {
   title: 'Sign In | FrothMonkey',
   description: 'Sign in to your FrothMonkey account',
+  alternates: {
+    canonical: 'https://www.frothmonkey.com/auth/login',
+  },
 }
 
 export default function LoginPage() {

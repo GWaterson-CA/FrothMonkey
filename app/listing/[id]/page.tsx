@@ -68,7 +68,7 @@ export async function generateMetadata({ params }: ListingPageProps): Promise<Me
     }
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://frothmonkey.com'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.frothmonkey.com'
   const listingUrl = `${baseUrl}/listing/${params.id}`
   
   // Use direct Supabase storage URL for better Facebook compatibility

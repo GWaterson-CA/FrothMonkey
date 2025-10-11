@@ -8,6 +8,10 @@ import { createClient } from '@/lib/supabase/server'
 export const metadata: Metadata = {
   title: 'Create New Listing | FrothMonkey',
   description: 'Create a new auction listing',
+  robots: {
+    index: false,
+    follow: false,
+  },
 }
 
 export default async function NewListingPage() {

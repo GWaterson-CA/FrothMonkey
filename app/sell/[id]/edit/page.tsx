@@ -1,8 +1,18 @@
+import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getUserProfile } from '@/lib/auth'
 import { EditListingForm } from '@/components/sell/edit-listing-form'
 import { Header } from '@/components/header'
+
+export const metadata: Metadata = {
+  title: 'Edit Listing | FrothMonkey',
+  description: 'Edit your auction listing',
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 interface EditListingPageProps {
   params: {

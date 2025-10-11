@@ -8,6 +8,9 @@ import Image from 'next/image'
 export const metadata: Metadata = {
   title: 'Sign Up | FrothMonkey',
   description: 'Create your FrothMonkey account',
+  alternates: {
+    canonical: 'https://www.frothmonkey.com/auth/register',
+  },
 }
 
 export default function RegisterPage() {

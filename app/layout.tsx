@@ -77,9 +77,6 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  alternates: {
-    canonical: baseUrl,
-  },
   verification: {
     // Add your verification codes here when you have them
     google: 'YJpQthJKEPUOsZ296YMx98AVOGsiH4wQ6Tj_olMNxUM',
@@ -93,7 +90,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarnings>
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         {/* Google tag (gtag.js) */}
         <Script
