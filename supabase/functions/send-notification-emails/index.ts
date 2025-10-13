@@ -220,61 +220,170 @@ serve(async (req) => {
       subject = `You've been outbid on "${listingTitle}"`
       htmlContent = `
         <!DOCTYPE html>
-        <html>
-          <head>
-            <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { background-color: #3b82f6; color: white; padding: 20px; text-align: center; }
-              .logo { max-width: 150px; height: auto; margin-bottom: 15px; }
-              .content { padding: 20px; background-color: #f9fafb; }
-              .listing-preview { background-color: white; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; }
-              .listing-image { width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto; }
-              .listing-title { font-size: 20px; font-weight: bold; color: #1a1a1a; margin: 0; }
-              .details { background-color: white; padding: 15px; margin: 20px 0; border-radius: 5px; }
-              .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
-              .button { display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-              .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 14px; }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="header">
-                <img src="https://frothmonkey.com/FrothMonkey%20Logo%20Blue.png" alt="FrothMonkey" class="logo" />
-                <h1>😔 You've Been Outbid!</h1>
-              </div>
-              <div class="content">
-                <p>Hi ${recipientName},</p>
-                <p>Someone has placed a higher bid on an auction you were winning. Don't let it slip away!</p>
-                <div class="listing-preview">
-                  <img src="${listingImage}" alt="${listingTitle}" class="listing-image" />
-                  <h2 class="listing-title">${listingTitle}</h2>
-                </div>
-                <div class="details">
-                  <div class="detail-row">
-                    <span><strong>Listing:</strong></span>
-                    <span>${listingTitle}</span>
-                  </div>
-                  <div class="detail-row">
-                    <span><strong>Your Bid:</strong></span>
-                    <span>$${previousBid.toFixed(2)}</span>
-                  </div>
-                  <div class="detail-row">
-                    <span><strong>Current Bid:</strong></span>
-                    <span>$${newBid.toFixed(2)}</span>
-                  </div>
-                </div>
-                <div style="text-align: center;">
-                  <a href="${listingUrl}" class="button">Place a Higher Bid</a>
-                </div>
-              </div>
-              <div class="footer">
-                <p>You're receiving this because you have email notifications enabled.</p>
-                <p><a href="${appUrl}/account/settings">Manage your notification preferences</a></p>
-              </div>
-            </div>
-          </body>
-        </html>
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .header {
+        background-color: #3b82f6;
+        color: white;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center; /* centers vertically */
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .logo {
+        max-width: 150px;
+        height: auto;
+        margin-bottom: 15px;
+      }
+
+      .content {
+        padding: 20px;
+        background-color: #f9fafb;
+      }
+
+      .listing-preview {
+        background-color: white;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .listing-image {
+        width: 100%;
+        max-width: 400px;
+        height: auto;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .listing-title {
+        font-size: 20px;
+        font-weight: bold;
+        color: #1a1a1a;
+        margin: 0;
+      }
+
+      .details {
+        background-color: white;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 5px;
+      }
+
+      .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .button {
+        display: inline-block;
+        background-color: #3b82f6;
+        color: white;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 5px;
+        margin: 20px 0;
+      }
+
+      .footer {
+        text-align: center;
+        padding: 20px;
+        color: #6b7280;
+        font-size: 14px;
+      }
+
+      .footer a {
+        color: #3b82f6;
+        text-decoration: none;
+      }
+
+      .footer a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="header">
+        <img
+          src="https://frothmonkey.com/FrothMonkey%20Logo%20Blue.png"
+          alt="FrothMonkey"
+          class="logo"
+        />
+      </div>
+
+      <div class="content">
+        <p>Hi ${recipientName},</p>
+        <p>
+          Someone has placed a higher bid on an auction you were winning.
+          Don’t let it slip away!
+        </p>
+
+        <div class="listing-preview">
+          <img
+            src="${listingImage}"
+            alt="${listingTitle}"
+            class="listing-image"
+          />
+          <h2 class="listing-title">${listingTitle}</h2>
+        </div>
+
+        <div class="details">
+          <div class="detail-row">
+            <span><strong>Listing:</strong></span>
+            <span>${listingTitle}</span>
+          </div>
+          <div class="detail-row">
+            <span><strong>Your Bid:</strong></span>
+            <span>$${previousBid.toFixed(2)}</span>
+          </div>
+          <div class="detail-row">
+            <span><strong>Current Bid:</strong></span>
+            <span>$${newBid.toFixed(2)}</span>
+          </div>
+        </div>
+
+        <div style="text-align: center;">
+          <a href="${listingUrl}" class="button">Place a Higher Bid</a>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>You're receiving this because you have email notifications enabled.</p>
+        <p>
+          <a href="${appUrl}/account/settings"
+            >Manage your notification preferences</a
+          >
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
       `
     } else if (notification.type.startsWith('time_warning_')) {
       // Extract hours from notification type (e.g., 'time_warning_24h' -> 24)

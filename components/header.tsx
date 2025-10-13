@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { Tables } from '@/lib/database.types'
 import { MobileCategoryDialog } from '@/components/mobile-category-dialog'
 import { DesktopCategoryDropdown } from '@/components/desktop-category-dropdown'
+import { MobileSearchDialog } from '@/components/mobile-search-dialog'
 
 interface CategoryWithSubcategories extends Tables<'categories'> {
   subcategories?: Tables<'categories'>[]
@@ -66,8 +67,11 @@ export async function Header() {
             />
           </Link>
 
+          {/* Spacer to push content to the right */}
+          <div className="flex-1" />
+
           {/* Search - Hidden on small screens, shown on md+ */}
-          <div className="hidden md:flex flex-1 items-center px-2 lg:px-6">
+          <div className="hidden md:flex items-center">
             <SearchForm />
           </div>
 
@@ -78,6 +82,9 @@ export async function Header() {
 
           {/* Navigation - Compact on mobile */}
           <nav className="flex items-center gap-1 md:gap-2">
+            {/* Mobile Search Icon */}
+            <MobileSearchDialog />
+            
             {user && profile ? (
               <>
                 <Button variant="ghost" size="sm" asChild className="hidden sm:flex">
@@ -134,13 +141,6 @@ export async function Header() {
               </>
             )}
           </nav>
-        </div>
-
-        {/* Mobile Search Bar - Shown on small screens only */}
-        <div className="md:hidden border-t">
-          <div className="container py-2">
-            <SearchForm />
-          </div>
         </div>
       </header>
       
