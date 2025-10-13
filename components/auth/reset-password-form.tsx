@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,14 +12,17 @@ import { useToast } from '@/components/ui/use-toast'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2 } from 'lucide-react'
 
-const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+const resetPasswordSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 })
 
-type LoginFormData = z.infer<typeof loginSchema>
+type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>
 
-export function LoginForm() {
+export function ResetPasswordForm() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
@@ -30,16 +32,15 @@ export function LoginForm() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<ResetPasswordFormData>({
+    resolver: zodResolver(resetPasswordSchema),
   })
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = async (data: ResetPasswordFormData) => {
     setIsLoading(true)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: data.email,
+      const { error } = await supabase.auth.updateUser({
         password: data.password,
       })
 
@@ -54,11 +55,13 @@ export function LoginForm() {
 
       toast({
         title: 'Success',
-        description: 'You have been signed in successfully',
+        description: 'Your password has been reset successfully',
       })
 
-      router.push('/')
-      router.refresh()
+      // Redirect to login page after a short delay
+      setTimeout(() => {
+        router.push('/auth/login')
+      }, 1500)
     } catch (error) {
       toast({
         title: 'Error',
@@ -73,33 +76,11 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="Enter your email"
-          {...register('email')}
-          disabled={isLoading}
-        />
-        {errors.email && (
-          <p className="text-sm text-destructive">{errors.email.message}</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="password">Password</Label>
-          <Link 
-            href="/auth/forgot-password" 
-            className="text-sm text-primary hover:underline"
-          >
-            Forgot password?
-          </Link>
-        </div>
+        <Label htmlFor="password">New Password</Label>
         <Input
           id="password"
           type="password"
-          placeholder="Enter your password"
+          placeholder="Enter your new password"
           {...register('password')}
           disabled={isLoading}
         />
@@ -108,10 +89,25 @@ export function LoginForm() {
         )}
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword">Confirm New Password</Label>
+        <Input
+          id="confirmPassword"
+          type="password"
+          placeholder="Confirm your new password"
+          {...register('confirmPassword')}
+          disabled={isLoading}
+        />
+        {errors.confirmPassword && (
+          <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+        )}
+      </div>
+
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Sign In
+        Reset Password
       </Button>
     </form>
   )
 }
+

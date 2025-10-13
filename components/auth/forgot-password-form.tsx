@@ -1,11 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,16 +11,15 @@ import { useToast } from '@/components/ui/use-toast'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2 } from 'lucide-react'
 
-const loginSchema = z.object({
+const forgotPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
 })
 
-type LoginFormData = z.infer<typeof loginSchema>
+type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
 
-export function LoginForm() {
+export function ForgotPasswordForm() {
   const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+  const [emailSent, setEmailSent] = useState(false)
   const { toast } = useToast()
   const supabase = createClient()
 
@@ -30,17 +27,16 @@ export function LoginForm() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<ForgotPasswordFormData>({
+    resolver: zodResolver(forgotPasswordSchema),
   })
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = async (data: ForgotPasswordFormData) => {
     setIsLoading(true)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
+      const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
       })
 
       if (error) {
@@ -52,13 +48,11 @@ export function LoginForm() {
         return
       }
 
+      setEmailSent(true)
       toast({
         title: 'Success',
-        description: 'You have been signed in successfully',
+        description: 'Password reset instructions have been sent to your email',
       })
-
-      router.push('/')
-      router.refresh()
     } catch (error) {
       toast({
         title: 'Error',
@@ -70,14 +64,31 @@ export function LoginForm() {
     }
   }
 
+  if (emailSent) {
+    return (
+      <div className="space-y-4 text-center">
+        <div className="rounded-lg bg-green-50 p-4 text-green-800">
+          <p className="font-medium">Check your email</p>
+          <p className="mt-2 text-sm">
+            We've sent password reset instructions to your email address. 
+            Please check your inbox and follow the link to reset your password.
+          </p>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Didn't receive the email? Check your spam folder or try again.
+        </p>
+      </div>
+    )
+  }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">Email Address</Label>
         <Input
           id="email"
           type="email"
-          placeholder="Enter your email"
+          placeholder="Enter your email address"
           {...register('email')}
           disabled={isLoading}
         />
@@ -86,32 +97,11 @@ export function LoginForm() {
         )}
       </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="password">Password</Label>
-          <Link 
-            href="/auth/forgot-password" 
-            className="text-sm text-primary hover:underline"
-          >
-            Forgot password?
-          </Link>
-        </div>
-        <Input
-          id="password"
-          type="password"
-          placeholder="Enter your password"
-          {...register('password')}
-          disabled={isLoading}
-        />
-        {errors.password && (
-          <p className="text-sm text-destructive">{errors.password.message}</p>
-        )}
-      </div>
-
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Sign In
+        Send Reset Instructions
       </Button>
     </form>
   )
 }
+
