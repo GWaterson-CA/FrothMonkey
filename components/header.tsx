@@ -6,7 +6,7 @@ import { getUser, getUserProfile } from '@/lib/auth'
 import { UserNav } from '@/components/user-nav'
 import { SearchForm } from '@/components/search-form'
 import { NotificationsDropdown } from '@/components/notifications/notifications-dropdown'
-import { MobileCategoryDialog } from '@/components/mobile-category-dialog'
+import { MobileCategoryNav } from '@/components/mobile-category-nav'
 import { DesktopCategoryDropdown } from '@/components/desktop-category-dropdown'
 import { MobileSearchDialog } from '@/components/mobile-search-dialog'
 import { getActiveCategories } from '@/lib/categories'
@@ -112,12 +112,8 @@ export async function Header() {
         </div>
       </header>
       
-      {/* Category Navigation Bar - Mobile Only */}
-      <nav className="bg-muted/30 sticky top-16 z-40 border-b md:hidden">
-        <div className="container py-3">
-          <MobileCategoryDialog categories={categoriesWithSubs} />
-        </div>
-      </nav>
+      {/* Category Navigation Bar - Mobile Only with scroll behavior */}
+      <MobileCategoryNav categories={categoriesWithSubs} />
     </>
   )
 }

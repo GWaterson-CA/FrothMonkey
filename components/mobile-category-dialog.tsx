@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Menu, ChevronDown, ChevronRight, ChevronUp, Maximize2, Minimize2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -19,12 +19,22 @@ export function MobileCategoryDialog({ categories }: MobileCategoryDialogProps) 
   const [open, setOpen] = useState(false)
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
 
+  // Auto-expand all categories when dialog opens
+  useEffect(() => {
+    if (open) {
+      const allIds = categories.map(cat => cat.id)
+      setExpandedCategories(new Set(allIds))
+    }
+  }, [open, categories])
+
   const handleCategoryClick = () => {
     setOpen(false)
     setExpandedCategories(new Set())
   }
 
-  const toggleCategory = (categoryId: string) => {
+  const toggleCategory = (categoryId: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
     const newExpanded = new Set(expandedCategories)
     if (newExpanded.has(categoryId)) {
       newExpanded.delete(categoryId)
@@ -34,12 +44,16 @@ export function MobileCategoryDialog({ categories }: MobileCategoryDialogProps) 
     setExpandedCategories(newExpanded)
   }
 
-  const expandAll = () => {
+  const expandAll = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
     const allIds = categories.map(cat => cat.id)
     setExpandedCategories(new Set(allIds))
   }
 
-  const collapseAll = () => {
+  const collapseAll = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
     setExpandedCategories(new Set())
   }
 
@@ -64,7 +78,7 @@ export function MobileCategoryDialog({ categories }: MobileCategoryDialogProps) 
           <Button
             variant="ghost"
             size="sm"
-            onClick={expandedCategories.size > 0 ? collapseAll : expandAll}
+            onClick={(e) => expandedCategories.size > 0 ? collapseAll(e) : expandAll(e)}
             className="w-full justify-center text-xs"
           >
             {expandedCategories.size > 0 ? (
@@ -112,7 +126,7 @@ export function MobileCategoryDialog({ categories }: MobileCategoryDialogProps) 
                     {/* Expand/collapse button - only show if has subcategories */}
                     {hasSubcategories && (
                       <button
-                        onClick={() => toggleCategory(category.id)}
+                        onClick={(e) => toggleCategory(category.id, e)}
                         className="flex items-center justify-center px-3 hover:bg-primary/10 transition-colors border-l border-muted"
                         aria-label={isExpanded ? 'Collapse' : 'Expand'}
                       >
