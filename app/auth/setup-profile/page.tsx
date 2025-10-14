@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: 'Complete your FrothMonkey profile',
 }
 
-export default async function SetupProfilePage() {
+export default async function SetupProfilePage({ searchParams }: { searchParams: { redirect?: string } }) {
   const user = await requireAuth()
 
   return (
@@ -36,7 +36,7 @@ export default async function SetupProfilePage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <SetupProfileForm userId={user.id} />
+            <SetupProfileForm userId={user.id} redirectTo={searchParams.redirect} />
           </CardContent>
         </Card>
       </div>

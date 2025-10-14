@@ -13,7 +13,11 @@ export const metadata: Metadata = {
   },
 }
 
-export default function LoginPage() {
+export default function LoginPage({ searchParams }: { searchParams: { redirect?: string } }) {
+  const registerUrl = searchParams.redirect 
+    ? `/auth/register?redirect=${encodeURIComponent(searchParams.redirect)}`
+    : '/auth/register'
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
       <div className="w-full max-w-md space-y-6">
@@ -40,7 +44,7 @@ export default function LoginPage() {
             <LoginForm />
             <div className="mt-4 text-center text-sm">
               Don't have an account?{' '}
-              <Link href="/auth/register" className="text-primary hover:underline">
+              <Link href={registerUrl} className="text-primary hover:underline">
                 Sign up
               </Link>
             </div>

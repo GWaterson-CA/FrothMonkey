@@ -300,6 +300,7 @@ export type Database = {
           current_price: number
           description: string | null
           end_time: string
+          favorite_count: number
           id: string
           location: string
           owner_id: string
@@ -321,6 +322,7 @@ export type Database = {
           current_price?: number
           description?: string | null
           end_time: string
+          favorite_count?: number
           id?: string
           location?: string
           owner_id: string
@@ -341,6 +343,7 @@ export type Database = {
           current_price?: number
           description?: string | null
           end_time?: string
+          favorite_count?: number
           id?: string
           location?: string
           owner_id?: string

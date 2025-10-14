@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -23,6 +23,7 @@ type LoginFormData = z.infer<typeof loginSchema>
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
   const supabase = createClient()
 
@@ -57,7 +58,9 @@ export function LoginForm() {
         description: 'You have been signed in successfully',
       })
 
-      router.push('/')
+      // Check for redirect parameter, otherwise go to home
+      const redirectTo = searchParams.get('redirect') || '/'
+      router.push(redirectTo)
       router.refresh()
     } catch (error) {
       toast({

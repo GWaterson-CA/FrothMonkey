@@ -8,7 +8,9 @@ import {
   AuctionWonBuyerEmail,
   TestEmail,
   ConfirmEmail,
-  ResetPasswordEmail
+  ResetPasswordEmail,
+  FavoriteReserveMetEmail,
+  FavoriteEndingSoonEmail
 } from './templates'
 
 interface NotificationEmailData {
@@ -120,6 +122,28 @@ export async function sendNotificationEmail({
         })
         break
 
+      case 'favorite_reserve_met':
+        subject = `Reserve met on "${data.listingTitle}"`
+        reactContent = React.createElement(FavoriteReserveMetEmail, {
+          recipientName,
+          listingTitle: data.listingTitle,
+          listingUrl: `${APP_URL}/listing/${data.listingId}`,
+          currentBid: data.currentBid,
+          timeRemaining: data.timeRemaining
+        })
+        break
+
+      case 'favorite_ending_soon':
+        subject = `Less than 24h left on "${data.listingTitle}"`
+        reactContent = React.createElement(FavoriteEndingSoonEmail, {
+          recipientName,
+          listingTitle: data.listingTitle,
+          listingUrl: `${APP_URL}/listing/${data.listingId}`,
+          currentBid: data.currentBid,
+          reserveMet: data.reserveMet || false
+        })
+        break
+
       default:
         console.error(`[Email] No email template for notification type: ${notificationType}`)
         return { success: false, error: `Unknown notification type: ${notificationType}` }
@@ -202,7 +226,9 @@ export async function shouldSendEmail(
     'time_warning_6h': 'time_warning_enabled',
     'time_warning_12h': 'time_warning_enabled',
     'time_warning_24h': 'time_warning_enabled',
-    'time_warning_48h': 'time_warning_enabled'
+    'time_warning_48h': 'time_warning_enabled',
+    'favorite_reserve_met': 'favorite_notifications',
+    'favorite_ending_soon': 'favorite_notifications'
   }
 
   const preferenceKey = preferenceMap[notificationType]

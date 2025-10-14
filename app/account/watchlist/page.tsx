@@ -56,9 +56,9 @@ async function WatchlistContent() {
         <CardContent className="p-12 text-center">
           <div className="text-muted-foreground">
             <Heart className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="text-lg mb-2">Your watchlist is empty</p>
+            <p className="text-lg mb-2">Your favorites list is empty</p>
             <p className="text-sm mb-4">
-              Add items to your watchlist to keep track of auctions you're interested in
+              Click the heart icon on any listing to add it to your favorites and get notifications when the reserve is met or when there's less than 24 hours remaining
             </p>
             <Button asChild>
               <Link href="/">Browse Auctions</Link>
@@ -203,13 +203,13 @@ export default function WatchlistPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">My Watchlist</h1>
+        <h1 className="text-3xl font-bold">My Favorites</h1>
         <p className="text-muted-foreground">
           Keep track of auctions you're interested in bidding on.
         </p>
       </div>
 
-      <Suspense fallback={<div>Loading watchlist...</div>}>
+      <Suspense fallback={<div>Loading favorites...</div>}>
         <WatchlistContent />
       </Suspense>
     </div>

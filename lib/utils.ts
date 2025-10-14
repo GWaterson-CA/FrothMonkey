@@ -94,3 +94,26 @@ export function isValidUsername(username: string): boolean {
   const usernameRegex = /^[a-zA-Z0-9_-]{3,24}$/
   return usernameRegex.test(username)
 }
+
+// Format time remaining in human-readable format like "2h 19m"
+export function formatTimeRemaining(endTime: string | Date): string {
+  const end = typeof endTime === 'string' ? new Date(endTime) : endTime
+  const now = new Date()
+  const difference = end.getTime() - now.getTime()
+
+  if (difference <= 0) {
+    return '0m'
+  }
+
+  const days = Math.floor(difference / (1000 * 60 * 60 * 24))
+  const hours = Math.floor((difference / (1000 * 60 * 60)) % 24)
+  const minutes = Math.floor((difference / 1000 / 60) % 60)
+
+  if (days > 0) {
+    return hours > 0 ? `${days}d ${hours}h` : `${days}d`
+  }
+  if (hours > 0) {
+    return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`
+  }
+  return `${minutes}m`
+}

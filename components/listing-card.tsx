@@ -2,12 +2,14 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import { useState } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Heart, Clock, Gavel, MapPin } from 'lucide-react'
-import { formatCurrency, formatRelativeTime, isAuctionEndingSoon, isAuctionEnded, getImageUrl } from '@/lib/utils'
-import { CountdownTimer } from '@/components/countdown-timer'
+import { Heart, MapPin } from 'lucide-react'
+import { formatCurrency, isAuctionEndingSoon, isAuctionEnded, getImageUrl, formatTimeRemaining } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 
 interface ListingCardProps {
   listing: {
@@ -31,14 +33,69 @@ interface ListingCardProps {
       username: string | null
     } | null
   }
+  initialIsFavorited?: boolean
+  initialFavoriteCount?: number
+  currentUserId?: string | null
 }
 
-export function ListingCard({ listing }: ListingCardProps) {
+export function ListingCard({ listing, initialIsFavorited = false, initialFavoriteCount = 0, currentUserId }: ListingCardProps) {
+  const [isFavorited, setIsFavorited] = useState(initialIsFavorited)
+  const [favoriteCount, setFavoriteCount] = useState(initialFavoriteCount)
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
+  const supabase = createClient()
+
   const isEndingSoon = isAuctionEndingSoon(listing.end_time)
   const hasEnded = isAuctionEnded(listing.end_time)
   const isActuallyLive = listing.status === 'live' && !hasEnded
   const hasImage = listing.cover_image_url
   const imageUrl = hasImage ? getImageUrl(listing.cover_image_url) : '/placeholder-image.jpg'
+
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!currentUserId) {
+      router.push('/auth/login?redirect=' + encodeURIComponent(window.location.pathname))
+      return
+    }
+
+    if (isLoading) return
+    setIsLoading(true)
+
+    try {
+      if (isFavorited) {
+        // Remove from favorites
+        const { error } = await supabase
+          .from('watchlists')
+          .delete()
+          .eq('user_id', currentUserId)
+          .eq('listing_id', listing.id)
+
+        if (!error) {
+          setIsFavorited(false)
+          setFavoriteCount(Math.max(0, favoriteCount - 1))
+        }
+      } else {
+        // Add to favorites
+        const { error } = await supabase
+          .from('watchlists')
+          .insert({
+            user_id: currentUserId,
+            listing_id: listing.id
+          })
+
+        if (!error) {
+          setIsFavorited(true)
+          setFavoriteCount(favoriteCount + 1)
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <Card className="group hover:shadow-lg transition-shadow duration-200">
@@ -69,93 +126,61 @@ export function ListingCard({ listing }: ListingCardProps) {
                 Reserve Met
               </Badge>
             )}
-            {listing.buy_now_enabled && !listing.reserve_met && (
-              <Badge variant="outline" className="text-xs bg-background/80">
-                Buy Now
-              </Badge>
-            )}
-            {isEndingSoon && isActuallyLive && (
-              <Badge variant="destructive" className="text-xs pulse-red">
-                Ending Soon
-              </Badge>
-            )}
           </div>
 
-          {/* Watchlist button */}
+          {/* Favorite button with count */}
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-2 right-2 bg-background/80 hover:bg-background"
-            onClick={(e) => {
-              e.preventDefault()
-              // TODO: Add to watchlist functionality
-            }}
+            className={`absolute top-2 right-2 bg-background/80 hover:bg-background transition-colors ${
+              isFavorited ? 'text-red-500 hover:text-red-600' : ''
+            }`}
+            onClick={handleFavoriteClick}
+            disabled={isLoading}
           >
-            <Heart className="h-4 w-4" />
+            <div className="relative">
+              <Heart 
+                className={`h-4 w-4 ${isFavorited ? 'fill-current' : ''}`} 
+              />
+              {favoriteCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-semibold rounded-full w-4 h-4 flex items-center justify-center">
+                  {favoriteCount}
+                </span>
+              )}
+            </div>
           </Button>
         </div>
       </Link>
 
       <CardContent className="p-4">
         <Link href={`/listing/${listing.id}`}>
-          <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors mb-3">
             {listing.title}
           </h3>
         </Link>
         
-        <div className="mt-2 space-y-1">
+        <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Current bid</span>
-            <span className="font-semibold">
+            <span className="font-semibold text-lg">
               {formatCurrency(listing.current_price || listing.start_price)}
             </span>
           </div>
-          
-          {listing.buy_now_price && !listing.reserve_met && (
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Buy now</span>
-              <span className="font-semibold text-primary">
-                {formatCurrency(listing.buy_now_price)}
-              </span>
-            </div>
-          )}
-        </div>
 
-        <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-          <Clock className="h-3 w-3" />
-          {isActuallyLive ? (
-            <CountdownTimer endTime={listing.end_time} />
-          ) : (
-            <span>Ended {formatRelativeTime(listing.end_time)}</span>
-          )}
-        </div>
-
-        {listing.categories && (
-          <div className="mt-2">
-            <Badge variant="outline" className="text-xs">
-              {listing.categories.name}
-            </Badge>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <MapPin className="h-3 w-3" />
+            <span>{listing.location}</span>
           </div>
-        )}
+
+          <div className="text-xs text-muted-foreground">
+            {isActuallyLive ? (
+              <span>Listing ends in {formatTimeRemaining(listing.end_time)}</span>
+            ) : (
+              <span>Listing ended</span>
+            )}
+          </div>
+        </div>
       </CardContent>
-
-      <CardFooter className="p-4 pt-0">
-        <div className="flex items-center justify-between w-full text-xs text-muted-foreground">
-          <div className="flex flex-col gap-1">
-            <span>@{listing.profiles?.username || 'Unknown'}</span>
-            <div className="flex items-center gap-1">
-              <MapPin className="h-3 w-3" />
-              <span>{listing.location}</span>
-            </div>
-          </div>
-          {isActuallyLive && (
-            <div className="flex items-center gap-1">
-              <Gavel className="h-3 w-3" />
-              <span>Bid now</span>
-            </div>
-          )}
-        </div>
-      </CardFooter>
     </Card>
   )
 }

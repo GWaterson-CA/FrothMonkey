@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -26,6 +26,7 @@ type RegisterFormData = z.infer<typeof registerSchema>
 export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
   const supabase = createClient()
 
@@ -60,7 +61,12 @@ export function RegisterForm() {
         description: 'Your account has been created. Please complete your profile.',
       })
 
-      router.push('/auth/setup-profile')
+      // Pass redirect parameter to setup-profile
+      const redirectTo = searchParams.get('redirect')
+      const setupUrl = redirectTo 
+        ? `/auth/setup-profile?redirect=${encodeURIComponent(redirectTo)}`
+        : '/auth/setup-profile'
+      router.push(setupUrl)
     } catch (error) {
       toast({
         title: 'Error',

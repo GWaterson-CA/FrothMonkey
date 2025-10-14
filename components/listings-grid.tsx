@@ -16,6 +16,9 @@ interface ListingsGridProps {
 export async function ListingsGrid({ searchParams }: ListingsGridProps) {
   const supabase = createClient()
   
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser()
+  
   // Calculate timestamp for 12 hours ago (for recently ended auctions)
   const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()
   
@@ -276,10 +279,29 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
     )
   }
 
+  // Fetch user's favorites if logged in
+  let userFavorites: Set<string> = new Set()
+  if (user) {
+    const { data: favorites } = await supabase
+      .from('watchlists')
+      .select('listing_id')
+      .eq('user_id', user.id)
+    
+    if (favorites) {
+      userFavorites = new Set(favorites.map(f => f.listing_id))
+    }
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {listings.map((listing) => (
-        <ListingCard key={listing.id} listing={listing} />
+        <ListingCard 
+          key={listing.id} 
+          listing={listing}
+          initialIsFavorited={userFavorites.has(listing.id)}
+          initialFavoriteCount={listing.favorite_count || 0}
+          currentUserId={user?.id}
+        />
       ))}
     </div>
   )

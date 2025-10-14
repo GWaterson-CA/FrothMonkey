@@ -504,3 +504,119 @@ export function ResetPasswordEmail({ recipientName, resetUrl }: ResetPasswordEma
   )
 }
 
+interface FavoriteReserveMetEmailProps {
+  recipientName: string
+  listingTitle: string
+  listingUrl: string
+  currentBid: number
+  timeRemaining: string
+}
+
+export function FavoriteReserveMetEmail({ 
+  recipientName, 
+  listingTitle, 
+  listingUrl, 
+  currentBid,
+  timeRemaining
+}: FavoriteReserveMetEmailProps) {
+  return (
+    <EmailLayout previewText={`Reserve met on "${listingTitle}"`}>
+      <h1 className="title">🎯 Reserve Price Met!</h1>
+      <p className="message">
+        Hi {recipientName},
+      </p>
+      <p className="message">
+        Great news! The reserve price has been met on a listing you favorited. This means the seller is committed to selling!
+      </p>
+      
+      <div className="details">
+        <div className="details-row">
+          <span className="details-label">Listing:</span>
+          <span className="details-value">{listingTitle}</span>
+        </div>
+        <div className="details-row">
+          <span className="details-label">Current Bid:</span>
+          <span className="details-value">${currentBid.toFixed(2)}</span>
+        </div>
+        <div className="details-row">
+          <span className="details-label">Time Remaining:</span>
+          <span className="details-value">{timeRemaining}</span>
+        </div>
+        <div className="details-row">
+          <span className="details-label">Status:</span>
+          <span className="details-value">✅ Reserve Met</span>
+        </div>
+      </div>
+
+      <p style={{ textAlign: 'center', marginTop: 30 }}>
+        <a href={listingUrl} className="button">
+          View Listing & Place Bid
+        </a>
+      </p>
+      
+      <p className="message" style={{ marginTop: 30, fontSize: 14 }}>
+        Don't miss this opportunity! Place your bid now to win this item.
+      </p>
+    </EmailLayout>
+  )
+}
+
+interface FavoriteEndingSoonEmailProps {
+  recipientName: string
+  listingTitle: string
+  listingUrl: string
+  currentBid: number
+  reserveMet: boolean
+}
+
+export function FavoriteEndingSoonEmail({ 
+  recipientName, 
+  listingTitle, 
+  listingUrl, 
+  currentBid,
+  reserveMet
+}: FavoriteEndingSoonEmailProps) {
+  return (
+    <EmailLayout previewText={`Less than 24h left on "${listingTitle}"`}>
+      <h1 className="title">⏰ Favorited Listing Ending Soon!</h1>
+      <p className="message">
+        Hi {recipientName},
+      </p>
+      <p className="message">
+        A listing you favorited is ending in less than 24 hours! {reserveMet ? 'The reserve has been met, so this auction will sell.' : 'Act fast before it\'s gone!'}
+      </p>
+      
+      <div className="details">
+        <div className="details-row">
+          <span className="details-label">Listing:</span>
+          <span className="details-value">{listingTitle}</span>
+        </div>
+        <div className="details-row">
+          <span className="details-label">Current Bid:</span>
+          <span className="details-value">${currentBid.toFixed(2)}</span>
+        </div>
+        <div className="details-row">
+          <span className="details-label">Time Remaining:</span>
+          <span className="details-value">Less than 24 hours</span>
+        </div>
+        <div className="details-row">
+          <span className="details-label">Status:</span>
+          <span className="details-value">
+            {reserveMet ? '✅ Reserve Met' : '⏳ Ending Soon'}
+          </span>
+        </div>
+      </div>
+
+      <p style={{ textAlign: 'center', marginTop: 30 }}>
+        <a href={listingUrl} className="button">
+          Place Your Bid Now
+        </a>
+      </p>
+      
+      <p className="message" style={{ marginTop: 30, fontSize: 14 }}>
+        This is your last chance! Don't let this opportunity slip away.
+      </p>
+    </EmailLayout>
+  )
+}
+

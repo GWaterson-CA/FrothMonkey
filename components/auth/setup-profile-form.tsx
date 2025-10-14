@@ -35,9 +35,10 @@ type ProfileFormData = z.infer<typeof profileSchema>
 
 interface SetupProfileFormProps {
   userId: string
+  redirectTo?: string
 }
 
-export function SetupProfileForm({ userId }: SetupProfileFormProps) {
+export function SetupProfileForm({ userId, redirectTo }: SetupProfileFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
@@ -99,7 +100,7 @@ export function SetupProfileForm({ userId }: SetupProfileFormProps) {
         description: 'Your profile has been created successfully',
       })
 
-      router.push('/')
+      router.push(redirectTo || '/')
       router.refresh()
     } catch (error) {
       toast({
