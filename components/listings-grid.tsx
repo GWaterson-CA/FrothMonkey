@@ -43,12 +43,12 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
   // We'll apply the status/time filter after getting the base query
   query = query.or(`status.eq.live,and(status.eq.ended,end_time.gte.${twelveHoursAgo}),and(status.eq.sold,end_time.gte.${twelveHoursAgo})`)
 
-  // Apply search query
+  // Apply search query with partial matching
   if (searchParams.q) {
-    query = query.textSearch('title', searchParams.q, {
-      type: 'websearch',
-      config: 'english'
-    })
+    const searchTerm = searchParams.q.trim()
+    // Use ILIKE for partial matching (case-insensitive)
+    // Search in both title and description for better results
+    query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
   }
 
   // Apply category filter
@@ -107,10 +107,8 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
         
         // Re-apply search and category filters if present
         if (searchParams.q) {
-          query = query.textSearch('title', searchParams.q, {
-            type: 'websearch',
-            config: 'english'
-          })
+          const searchTerm = searchParams.q.trim()
+          query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
         }
         if (searchParams.category) {
           const { data: category } = await supabase
@@ -157,10 +155,8 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
         
         // Re-apply search and category filters if present
         if (searchParams.q) {
-          query = query.textSearch('title', searchParams.q, {
-            type: 'websearch',
-            config: 'english'
-          })
+          const searchTerm = searchParams.q.trim()
+          query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
         }
         if (searchParams.category) {
           const { data: category } = await supabase
@@ -208,10 +204,8 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
         
         // Re-apply search and category filters if present
         if (searchParams.q) {
-          query = query.textSearch('title', searchParams.q, {
-            type: 'websearch',
-            config: 'english'
-          })
+          const searchTerm = searchParams.q.trim()
+          query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
         }
         if (searchParams.category) {
           const { data: category } = await supabase
