@@ -32,6 +32,7 @@ interface ListingCardProps {
     profiles: {
       username: string | null
     } | null
+    bid_count?: number
   }
   initialIsFavorited?: boolean
   initialFavoriteCount?: number
@@ -160,8 +161,10 @@ export function ListingCard({ listing, initialIsFavorited = false, initialFavori
         </Link>
         
         <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Current bid</span>
+          <div className="flex items-center justify-between text-sm gap-2">
+            <span className="text-muted-foreground">
+              {hasEnded ? 'Final price:' : 'Current bid:'}
+            </span>
             <span className="font-semibold text-lg">
               {formatCurrency(listing.current_price || listing.start_price)}
             </span>
@@ -172,11 +175,24 @@ export function ListingCard({ listing, initialIsFavorited = false, initialFavori
             <span>{listing.location}</span>
           </div>
 
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs">
             {isActuallyLive ? (
-              <span>Listing ends in {formatTimeRemaining(listing.end_time)}</span>
+              <span className="text-muted-foreground">Listing ends in {formatTimeRemaining(listing.end_time)}</span>
+            ) : hasEnded && listing.bid_count !== undefined ? (
+              <div className="space-y-1">
+                <div className="font-medium text-foreground">
+                  {listing.bid_count === 0 
+                    ? 'No bids placed' 
+                    : listing.bid_count === 1 
+                    ? '1 bid placed' 
+                    : `${listing.bid_count} bids placed`}
+                </div>
+                {listing.bid_count > 0 && (
+                  <div className="text-muted-foreground">Sold for {formatCurrency(listing.current_price || listing.start_price)}</div>
+                )}
+              </div>
             ) : (
-              <span>Listing ended</span>
+              <span className="text-muted-foreground">Listing ended</span>
             )}
           </div>
         </div>

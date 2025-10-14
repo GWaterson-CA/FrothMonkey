@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { Suspense } from 'react'
 import { LoginForm } from '@/components/auth/login-form'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
@@ -41,7 +42,9 @@ export default function LoginPage({ searchParams }: { searchParams: { redirect?:
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <LoginForm />
+            <Suspense fallback={<div className="text-center py-4">Loading...</div>}>
+              <LoginForm />
+            </Suspense>
             <div className="mt-4 text-center text-sm">
               Don't have an account?{' '}
               <Link href={registerUrl} className="text-primary hover:underline">

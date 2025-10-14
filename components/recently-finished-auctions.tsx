@@ -32,7 +32,10 @@ export async function RecentlyFinishedAuctions({
         {listings.map((listing: any) => (
           <ListingCard 
             key={listing.id} 
-            listing={listing}
+            listing={{
+              ...listing,
+              bid_count: listing.bidCount || (Array.isArray(listing.bids) ? listing.bids.length : 0)
+            }}
           />
         ))}
       </div>

@@ -32,6 +32,9 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
       ),
       profiles!listings_owner_id_fkey (
         username
+      ),
+      bids!listing_id (
+        id
       )
     `)
     .limit(12)
@@ -91,6 +94,9 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
             ),
             profiles!listings_owner_id_fkey (
               username
+            ),
+            bids!listing_id (
+              id
             )
           `)
           .eq('status', 'live')
@@ -140,6 +146,9 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
             ),
             profiles!listings_owner_id_fkey (
               username
+            ),
+            bids!listing_id (
+              id
             )
           `)
           .eq('status', 'live')
@@ -187,6 +196,9 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
             ),
             profiles!listings_owner_id_fkey (
               username
+            ),
+            bids!listing_id (
+              id
             )
           `)
           .eq('status', 'live')
@@ -297,7 +309,10 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
       {listings.map((listing) => (
         <ListingCard 
           key={listing.id} 
-          listing={listing}
+          listing={{
+            ...listing,
+            bid_count: Array.isArray(listing.bids) ? listing.bids.length : 0
+          }}
           initialIsFavorited={userFavorites.has(listing.id)}
           initialFavoriteCount={listing.favorite_count || 0}
           currentUserId={user?.id}

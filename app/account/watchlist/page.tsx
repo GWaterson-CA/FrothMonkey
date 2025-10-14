@@ -39,6 +39,9 @@ async function WatchlistContent() {
         ),
         profiles!listings_owner_id_fkey (
           username
+        ),
+        bids!listing_id (
+          id
         )
       )
     `)
@@ -136,13 +139,13 @@ async function WatchlistContent() {
 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Current bid:</span>
+                    <span className="text-muted-foreground">{hasEnded ? 'Final price:' : 'Current bid:'}</span>
                     <span className="font-semibold">
                       {formatCurrency(listing.current_price || listing.start_price)}
                     </span>
                   </div>
 
-                  {listing.buy_now_price && (
+                  {listing.buy_now_price && !hasEnded && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Buy now:</span>
                       <span className="font-semibold text-primary">
@@ -160,6 +163,21 @@ async function WatchlistContent() {
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Time left:</span>
                       <CountdownTimer endTime={listing.end_time} />
+                    </div>
+                  ) : hasEnded ? (
+                    <div className="flex flex-col gap-1">
+                      <div className="font-medium text-foreground">
+                        {Array.isArray(listing.bids) && listing.bids.length === 0 
+                          ? 'No bids placed' 
+                          : Array.isArray(listing.bids) && listing.bids.length === 1 
+                          ? '1 bid placed' 
+                          : `${Array.isArray(listing.bids) ? listing.bids.length : 0} bids placed`}
+                      </div>
+                      {Array.isArray(listing.bids) && listing.bids.length > 0 && (
+                        <div className="text-muted-foreground">
+                          Sold for {formatCurrency(listing.current_price || listing.start_price)}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="flex justify-between items-center">

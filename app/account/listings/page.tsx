@@ -109,15 +109,26 @@ async function MyListingsContent() {
             <div className="space-y-1 text-sm text-muted-foreground">
               <div>Category: {listing.categories?.name || 'Unknown'}</div>
               <div>
-                Current Price: {formatCurrency(listing.current_price || listing.start_price)}
+                {hasEnded ? 'Final price:' : 'Current price:'} {formatCurrency(listing.current_price || listing.start_price)}
               </div>
               {listing.reserve_price && (
                 <div>Reserve: {formatCurrency(listing.reserve_price)}</div>
               )}
               {listing.buy_now_price && (
-                <div>Buy Now: {formatCurrency(listing.buy_now_price)}</div>
+                <div>Buy now: {formatCurrency(listing.buy_now_price)}</div>
               )}
-              <div>Bids: {listing.bids?.length || 0}</div>
+              {hasEnded ? (
+                <div className="font-medium text-foreground">
+                  {listing.bids?.length === 0 
+                    ? 'No bids placed' 
+                    : listing.bids?.length === 1 
+                    ? '1 bid placed' 
+                    : `${listing.bids?.length || 0} bids placed`}
+                  {listing.bids?.length > 0 && ` • Sold for ${formatCurrency(listing.current_price || listing.start_price)}`}
+                </div>
+              ) : (
+                <div>Bids: {listing.bids?.length || 0}</div>
+              )}
               {isActuallyLive && (
                 <div className="flex items-center gap-2">
                   <span>Ends:</span>
@@ -126,7 +137,7 @@ async function MyListingsContent() {
               )}
               {!isActuallyLive && (
                 <div>
-                  {listing.status === 'draft' ? 'Created' : 'Ended'}: {formatDateTime(listing.created_at)}
+                  {listing.status === 'draft' ? 'Created:' : 'Ended:'} {formatDateTime(listing.created_at)}
                 </div>
               )}
             </div>
