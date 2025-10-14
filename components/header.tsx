@@ -6,49 +6,17 @@ import { getUser, getUserProfile } from '@/lib/auth'
 import { UserNav } from '@/components/user-nav'
 import { SearchForm } from '@/components/search-form'
 import { NotificationsDropdown } from '@/components/notifications/notifications-dropdown'
-import { createClient } from '@/lib/supabase/server'
-import type { Tables } from '@/lib/database.types'
 import { MobileCategoryDialog } from '@/components/mobile-category-dialog'
 import { DesktopCategoryDropdown } from '@/components/desktop-category-dropdown'
 import { MobileSearchDialog } from '@/components/mobile-search-dialog'
-
-interface CategoryWithSubcategories extends Tables<'categories'> {
-  subcategories?: Tables<'categories'>[]
-}
+import { getActiveCategories } from '@/lib/categories'
 
 export async function Header() {
   const user = await getUser()
   const profile = user ? await getUserProfile() : null
   
-  const supabase = createClient()
-  
-  // Fetch top-level categories (no parent_id)
-  const { data: topLevelCategories } = await supabase
-    .from('categories')
-    .select('*')
-    .is('parent_id', null)
-    .order('sort_order')
-  
-  // Fetch all subcategories
-  const { data: subcategories } = await supabase
-    .from('categories')
-    .select('*')
-    .not('parent_id', 'is', null)
-    .order('sort_order')
-  
-  // Group subcategories by parent
-  const categoriesWithSubs: CategoryWithSubcategories[] = (topLevelCategories as Tables<'categories'>[] || []).map((category: Tables<'categories'>) => {
-    const categoryId = category.id
-    const subs = (subcategories as Tables<'categories'>[] || []).filter((sub: Tables<'categories'>) => sub.parent_id === categoryId)
-    return {
-      id: category.id,
-      name: category.name,
-      slug: category.slug,
-      sort_order: category.sort_order,
-      parent_id: category.parent_id,
-      subcategories: subs
-    }
-  })
+  // Fetch categories with active listings only (for navigation)
+  const categoriesWithSubs = await getActiveCategories()
 
   return (
     <>

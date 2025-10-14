@@ -1,5 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { ListingCard } from '@/components/listing-card'
+import { Button } from '@/components/ui/button'
+import { Plus, Package } from 'lucide-react'
+import Link from 'next/link'
 
 interface ListingsGridProps {
   searchParams: {
@@ -106,8 +109,37 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
 
   if (!listings || listings.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">No listings found</p>
+      <div className="flex flex-col items-center justify-center py-16 px-4">
+        <div className="w-20 h-20 rounded-full bg-muted/50 flex items-center justify-center mb-6">
+          <Package className="h-10 w-10 text-muted-foreground" />
+        </div>
+        
+        <h3 className="text-xl font-semibold mb-2">No listings found</h3>
+        <p className="text-muted-foreground text-center max-w-md mb-6">
+          {searchParams.q 
+            ? `No auctions match your search "${searchParams.q}". Try different keywords or browse categories.`
+            : searchParams.category
+            ? "There are no active auctions in this category yet."
+            : "There are no active auctions at the moment."
+          }
+        </p>
+        
+        <div className="flex gap-3">
+          <Button asChild>
+            <Link href="/sell/new">
+              <Plus className="h-4 w-4 mr-2" />
+              Create a Listing
+            </Link>
+          </Button>
+          
+          {searchParams.q || searchParams.category ? (
+            <Button variant="outline" asChild>
+              <Link href="/">
+                Browse All Auctions
+              </Link>
+            </Button>
+          ) : null}
+        </div>
       </div>
     )
   }

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getUserProfile } from '@/lib/auth'
 import { EditListingForm } from '@/components/sell/edit-listing-form'
 import { Header } from '@/components/header'
+import { getAllCategories } from '@/lib/categories'
 
 export const metadata: Metadata = {
   title: 'Edit Listing | FrothMonkey',
@@ -78,11 +79,14 @@ export default async function EditListingPage({ params }: EditListingPageProps) 
     )
   }
 
-  // Fetch all categories for the form
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('*')
-    .order('sort_order', { ascending: true })
+  // Fetch all categories including empty ones (for sell flow)
+  const categoriesWithSubs = await getAllCategories()
+  
+  // Flatten categories for the form (including parent and subcategories)
+  const categories = categoriesWithSubs.flatMap(cat => [
+    cat,
+    ...(cat.subcategories || [])
+  ])
 
   const hasBids = listing.bids && listing.bids.length > 0
 
@@ -99,7 +103,7 @@ export default async function EditListingPage({ params }: EditListingPageProps) 
 
         <EditListingForm 
           listing={listing}
-          categories={categories || []}
+          categories={categories}
           userId={profile.id}
           hasBids={hasBids}
         />

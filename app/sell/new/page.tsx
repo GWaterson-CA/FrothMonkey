@@ -3,7 +3,7 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { requireProfile } from '@/lib/auth'
 import { CreateListingForm } from '@/components/sell/create-listing-form'
-import { createClient } from '@/lib/supabase/server'
+import { getAllCategories } from '@/lib/categories'
 
 export const metadata: Metadata = {
   title: 'Create New Listing | FrothMonkey',
@@ -16,17 +16,15 @@ export const metadata: Metadata = {
 
 export default async function NewListingPage() {
   const profile = await requireProfile()
-  const supabase = createClient()
 
-  // Fetch categories with hierarchical structure
-  const { data: categories, error: categoriesError } = await supabase
-    .from('categories')
-    .select('id, name, slug, parent_id, sort_order')
-    .order('sort_order')
+  // Fetch all categories including empty ones (for sell flow)
+  const categoriesWithSubs = await getAllCategories()
   
-  if (categoriesError) {
-    console.error('Categories fetch error:', categoriesError)
-  }
+  // Flatten categories for the form (including parent and subcategories)
+  const categories = categoriesWithSubs.flatMap(cat => [
+    cat,
+    ...(cat.subcategories || [])
+  ])
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -43,7 +41,7 @@ export default async function NewListingPage() {
             </div>
 
             <CreateListingForm 
-              categories={categories || []}
+              categories={categories}
               userId={profile.id}
             />
           </div>

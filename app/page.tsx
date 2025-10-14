@@ -5,6 +5,8 @@ import { ListingsGrid } from '@/components/listings-grid'
 import { ListingsTabs } from '@/components/listings-tabs'
 import { Hero } from '@/components/hero'
 import { Footer } from '@/components/footer'
+import { HorizontalCategoryBar } from '@/components/horizontal-category-bar'
+import { getActiveCategories } from '@/lib/categories'
 
 interface HomePageProps {
   searchParams: {
@@ -24,6 +26,9 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
+  // Fetch categories with active listings for the horizontal bar
+  const activeCategories = await getActiveCategories()
+
   // JSON-LD structured data for the homepage
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -76,6 +81,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       />
       
       <Header />
+      
+      {/* Horizontal Category Bar - Shown below header on all pages */}
+      {!searchParams.q && (
+        <HorizontalCategoryBar categories={activeCategories} />
+      )}
       
       <main className="flex-1">
         {!searchParams.q && (

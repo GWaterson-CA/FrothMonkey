@@ -225,6 +225,9 @@ export type Database = {
           slug: string
           sort_order: number | null
           parent_id: string | null
+          icon: string | null
+          description: string | null
+          active_listing_count: number
         }
         Insert: {
           id?: string
@@ -232,6 +235,9 @@ export type Database = {
           slug: string
           sort_order?: number | null
           parent_id?: string | null
+          icon?: string | null
+          description?: string | null
+          active_listing_count?: number
         }
         Update: {
           id?: string
@@ -239,6 +245,9 @@ export type Database = {
           slug?: string
           sort_order?: number | null
           parent_id?: string | null
+          icon?: string | null
+          description?: string | null
+          active_listing_count?: number
         }
         Relationships: [
           {
