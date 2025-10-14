@@ -8,13 +8,6 @@ export function Footer() {
   // Read version from package.json
   const packageJson = require('../package.json')
   const version = packageJson.version || '1.2.0'
-  const buildDate = new Date().toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
 
   return (
     <footer className="border-t bg-background">
@@ -33,18 +26,11 @@ export function Footer() {
               />
             </div>
             <p className="text-sm text-muted-foreground mb-4">
-              A modern auction platform for buying and selling unique items. 
-              Built with Next.js, Supabase, and TypeScript.
+              A modern auction platform for buying and selling.
             </p>
             <div className="flex items-center gap-2">
               <Badge variant="default" className="text-xs font-mono">
                 v{version}
-              </Badge>
-              <Badge variant="secondary" className="text-xs">
-                Build: {buildDate}
-              </Badge>
-              <Badge variant="success" className="text-xs">
-                🚀 Latest
               </Badge>
             </div>
           </div>
@@ -115,7 +101,7 @@ export function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-2 sm:gap-4">
-              <span>© 2024 FrothMonkey</span>
+              <span>© 2025 FrothMonkey</span>
               <span className="hidden sm:inline">•</span>
               <Link href="/terms" className="hover:text-foreground transition-colors">
                 Terms
@@ -125,17 +111,13 @@ export function Footer() {
                 Privacy
               </Link>
             </div>
-            <div className="hidden sm:flex items-center gap-4">
-              <span>•</span>
-              <span>Built with Next.js & Supabase</span>
-            </div>
           </div>
 
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <span>Made with</span>
               <Heart className="h-3 w-3 fill-red-500 text-red-500" />
-              <span>by developers</span>
+              <span>for Squamish</span>
             </div>
             
             <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-muted/50">
