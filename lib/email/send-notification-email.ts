@@ -6,7 +6,9 @@ import {
   TimeWarningEmail,
   AuctionEndedSellerEmail,
   AuctionWonBuyerEmail,
-  TestEmail
+  TestEmail,
+  ConfirmEmail,
+  ResetPasswordEmail
 } from './templates'
 
 interface NotificationEmailData {
@@ -99,6 +101,22 @@ export async function sendNotificationEmail({
         reactContent = React.createElement(TestEmail, {
           recipientName,
           testMessage: data.message || 'This is a test email from FrothMonkey. If you received this, the email system is working correctly!'
+        })
+        break
+
+      case 'confirm_email':
+        subject = 'Welcome to FrothMonkey - Confirm Your Email'
+        reactContent = React.createElement(ConfirmEmail, {
+          recipientName,
+          confirmationUrl: data.confirmationUrl || `${APP_URL}/auth/confirm`
+        })
+        break
+
+      case 'reset_password':
+        subject = 'Reset Your FrothMonkey Password'
+        reactContent = React.createElement(ResetPasswordEmail, {
+          recipientName,
+          resetUrl: data.resetUrl || `${APP_URL}/auth/reset-password`
         })
         break
 

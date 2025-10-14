@@ -84,6 +84,14 @@ export function EmailTestInterface() {
           finalBid: 250,
           sellerName: 'Jane Smith'
         }
+      } else if (notificationType === 'confirm_email') {
+        testData = {
+          confirmationUrl: 'https://frothmonkey.com/auth/confirm?token=test-token-123'
+        }
+      } else if (notificationType === 'reset_password') {
+        testData = {
+          resetUrl: 'https://frothmonkey.com/auth/reset-password?token=test-reset-token-456'
+        }
       } else {
         testData = {
           message: testMessage
@@ -153,6 +161,8 @@ export function EmailTestInterface() {
 
   const notificationTypes = [
     { value: 'test_email', label: 'Test Email (Simple)' },
+    { value: 'confirm_email', label: 'Confirm Email (Account Creation)' },
+    { value: 'reset_password', label: 'Reset Password' },
     { value: 'bid_outbid', label: 'Outbid Notification' },
     { value: 'time_warning_24h', label: '24 Hour Warning' },
     { value: 'time_warning_2h', label: '2 Hour Warning' },

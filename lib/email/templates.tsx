@@ -416,3 +416,91 @@ export function TestEmail({ recipientName, testMessage }: TestEmailProps) {
   )
 }
 
+interface ConfirmEmailProps {
+  recipientName: string
+  confirmationUrl: string
+}
+
+export function ConfirmEmail({ recipientName, confirmationUrl }: ConfirmEmailProps) {
+  return (
+    <EmailLayout previewText="Welcome to FrothMonkey! Confirm your email to get started">
+      <h1 className="title">🎉 Welcome to FrothMonkey!</h1>
+      <p className="message">
+        Hi {recipientName},
+      </p>
+      <p className="message">
+        Thank you for creating an account with FrothMonkey! We're excited to have you join our community of auction enthusiasts.
+      </p>
+      <p className="message">
+        To get started, please confirm your email address by clicking the button below:
+      </p>
+
+      <p style={{ textAlign: 'center', marginTop: 30, marginBottom: 30 }}>
+        <a href={confirmationUrl} className="button">
+          Click to Complete Your Profile
+        </a>
+      </p>
+
+      <p className="message" style={{ fontSize: 14, color: '#666' }}>
+        Once you've confirmed your email, you'll be able to:
+      </p>
+      <ul style={{ fontSize: 14, color: '#666', marginTop: 10, marginBottom: 20, paddingLeft: 20 }}>
+        <li>Browse and bid on exciting auctions</li>
+        <li>Create your own listings to sell items</li>
+        <li>Track your bids and watchlist</li>
+        <li>Receive notifications about auctions you're interested in</li>
+      </ul>
+
+      <p className="message" style={{ fontSize: 14, color: '#666', marginTop: 20 }}>
+        If you didn't create an account with FrothMonkey, you can safely ignore this email.
+      </p>
+    </EmailLayout>
+  )
+}
+
+interface ResetPasswordEmailProps {
+  recipientName: string
+  resetUrl: string
+}
+
+export function ResetPasswordEmail({ recipientName, resetUrl }: ResetPasswordEmailProps) {
+  return (
+    <EmailLayout previewText="Reset your FrothMonkey password">
+      <h1 className="title">🔐 Reset Your Password</h1>
+      <p className="message">
+        Hi {recipientName},
+      </p>
+      <p className="message">
+        We received a request to reset your password for your FrothMonkey account. If you made this request, click the button below to create a new password:
+      </p>
+
+      <p style={{ textAlign: 'center', marginTop: 30, marginBottom: 30 }}>
+        <a href={resetUrl} className="button">
+          Reset Your Password
+        </a>
+      </p>
+
+      <div className="details">
+        <div className="details-row">
+          <span className="details-label">⏱️ Link Expires:</span>
+          <span className="details-value">1 hour from request</span>
+        </div>
+        <div className="details-row">
+          <span className="details-label">🔒 Security:</span>
+          <span className="details-value">This link can only be used once</span>
+        </div>
+      </div>
+
+      <p className="message" style={{ fontSize: 14, color: '#666', marginTop: 30 }}>
+        <strong>Didn't request a password reset?</strong>
+        <br />
+        If you didn't request this password reset, you can safely ignore this email. Your password will remain unchanged and your account is secure.
+      </p>
+
+      <p className="message" style={{ fontSize: 14, color: '#666', marginTop: 20 }}>
+        For security reasons, this link will expire in 1 hour. If you need to reset your password after that, please request a new reset link.
+      </p>
+    </EmailLayout>
+  )
+}
+

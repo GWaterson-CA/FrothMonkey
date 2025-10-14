@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.8.10] - 2025-10-14
+
+### Added
+- **Custom Email Templates**: Added FrothMonkey-branded email templates for authentication flows
+  - Confirm Email (Account Creation) template with "Click to Complete Your Profile" button
+  - Reset Password email template with security information
+  - Both templates feature FrothMonkey purple gradient branding
+- **Admin Email Testing**: Added new email types to Admin Email Test interface for easy testing
+
+### Updated
+- Enhanced email template system with additional authentication email types
+- Updated email notification handler to support confirm_email and reset_password types
+
 ## [2.7.0] - 2025-10-10
 
 ### Fixed
