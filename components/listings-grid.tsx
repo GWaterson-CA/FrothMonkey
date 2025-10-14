@@ -16,6 +16,9 @@ interface ListingsGridProps {
 export async function ListingsGrid({ searchParams }: ListingsGridProps) {
   const supabase = createClient()
   
+  // Calculate timestamp for 12 hours ago (for recently ended auctions)
+  const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()
+  
   let query = supabase
     .from('listings')
     .select(`
@@ -28,8 +31,11 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
         username
       )
     `)
-    .in('status', ['live', 'ended', 'sold'])
     .limit(12)
+  
+  // Only show live auctions OR recently ended auctions (ended within last 12 hours)
+  // We'll apply the status/time filter after getting the base query
+  query = query.or(`status.eq.live,and(status.eq.ended,end_time.gte.${twelveHoursAgo}),and(status.eq.sold,end_time.gte.${twelveHoursAgo})`)
 
   // Apply search query
   if (searchParams.q) {
@@ -71,22 +77,148 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
     
     switch (searchParams.filter) {
       case 'ending-soon':
-        query = query
+        // Override the base status filter to only show live auctions
+        query = supabase
+          .from('listings')
+          .select(`
+            *,
+            categories (
+              name,
+              slug
+            ),
+            profiles!listings_owner_id_fkey (
+              username
+            )
+          `)
           .eq('status', 'live')
           .gte('end_time', now)
           .lte('end_time', new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString()) // Next 2 hours
           .order('end_time', { ascending: true })
+          .limit(12)
+        
+        // Re-apply search and category filters if present
+        if (searchParams.q) {
+          query = query.textSearch('title', searchParams.q, {
+            type: 'websearch',
+            config: 'english'
+          })
+        }
+        if (searchParams.category) {
+          const { data: category } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('slug', searchParams.category)
+            .single()
+          
+          if (category) {
+            const { data: subcategories } = await supabase
+              .from('categories')
+              .select('id')
+              .eq('parent_id', category.id)
+            
+            const categoryIds = [category.id]
+            if (subcategories && subcategories.length > 0) {
+              categoryIds.push(...subcategories.map(sub => sub.id))
+            }
+            
+            query = query.in('category_id', categoryIds)
+          }
+        }
         break
       case 'newly-listed':
-        query = query
+        // Override the base status filter to only show live auctions
+        query = supabase
+          .from('listings')
+          .select(`
+            *,
+            categories (
+              name,
+              slug
+            ),
+            profiles!listings_owner_id_fkey (
+              username
+            )
+          `)
           .eq('status', 'live')
           .order('created_at', { ascending: false })
+          .limit(12)
+        
+        // Re-apply search and category filters if present
+        if (searchParams.q) {
+          query = query.textSearch('title', searchParams.q, {
+            type: 'websearch',
+            config: 'english'
+          })
+        }
+        if (searchParams.category) {
+          const { data: category } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('slug', searchParams.category)
+            .single()
+          
+          if (category) {
+            const { data: subcategories } = await supabase
+              .from('categories')
+              .select('id')
+              .eq('parent_id', category.id)
+            
+            const categoryIds = [category.id]
+            if (subcategories && subcategories.length > 0) {
+              categoryIds.push(...subcategories.map(sub => sub.id))
+            }
+            
+            query = query.in('category_id', categoryIds)
+          }
+        }
         break
       case 'reserve-met':
-        query = query
+        // Override the base status filter to only show live auctions
+        query = supabase
+          .from('listings')
+          .select(`
+            *,
+            categories (
+              name,
+              slug
+            ),
+            profiles!listings_owner_id_fkey (
+              username
+            )
+          `)
           .eq('status', 'live')
           .eq('reserve_met', true)
           .order('end_time', { ascending: true })
+          .limit(12)
+        
+        // Re-apply search and category filters if present
+        if (searchParams.q) {
+          query = query.textSearch('title', searchParams.q, {
+            type: 'websearch',
+            config: 'english'
+          })
+        }
+        if (searchParams.category) {
+          const { data: category } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('slug', searchParams.category)
+            .single()
+          
+          if (category) {
+            const { data: subcategories } = await supabase
+              .from('categories')
+              .select('id')
+              .eq('parent_id', category.id)
+            
+            const categoryIds = [category.id]
+            if (subcategories && subcategories.length > 0) {
+              categoryIds.push(...subcategories.map(sub => sub.id))
+            }
+            
+            query = query.in('category_id', categoryIds)
+          }
+        }
         break
       default:
         query = query.order('created_at', { ascending: false })
