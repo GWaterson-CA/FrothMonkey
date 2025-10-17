@@ -99,7 +99,7 @@ export function ListingCard({ listing, initialIsFavorited = false, initialFavori
   }
 
   return (
-    <Card className="group hover:shadow-2xl hover:scale-[1.02] transition-all duration-200">
+    <Card className="group shadow-md hover:shadow-2xl hover:scale-[1.02] transition-all duration-200">
       <Link href={`/listing/${listing.id}`}>
         <div className="aspect-square relative overflow-hidden rounded-t-lg bg-muted flex items-center justify-center">
           <Image
@@ -133,13 +133,13 @@ export function ListingCard({ listing, initialIsFavorited = false, initialFavori
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-2 right-2 bg-background/80 hover:bg-background transition-colors rounded-full text-red-500 hover:text-red-600"
+            className="absolute top-2 right-2 bg-background/95 hover:bg-background transition-colors rounded-full text-red-500 hover:text-red-600"
             onClick={handleFavoriteClick}
             disabled={isLoading}
           >
             <div className="relative">
               <Heart 
-                className={`h-4 w-4 ${isFavorited ? 'fill-current' : ''}`} 
+                className={`h-5 w-5 ${isFavorited ? 'fill-current' : ''}`} 
               />
               {favoriteCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-semibold rounded-full w-4 h-4 flex items-center justify-center">
@@ -171,7 +171,7 @@ export function ListingCard({ listing, initialIsFavorited = false, initialFavori
           {/* Place Bid Button - Only show for live auctions */}
           {isActuallyLive && (
             <Link href={`/listing/${listing.id}`}>
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white hover:scale-105 hover:shadow-lg transition-all duration-200 px-6">
                 Place Bid
               </Button>
             </Link>
