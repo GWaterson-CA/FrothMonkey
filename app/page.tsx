@@ -6,6 +6,7 @@ import { ListingsTabs } from '@/components/listings-tabs'
 import { Hero } from '@/components/hero'
 import { Footer } from '@/components/footer'
 import { HorizontalCategoryBar } from '@/components/horizontal-category-bar'
+import { FloatingCircles } from '@/components/floating-circles'
 import { getActiveCategories } from '@/lib/categories'
 
 interface HomePageProps {
@@ -69,7 +70,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
       {/* JSON-LD structured data */}
       <script
         type="application/ld+json"
@@ -80,6 +81,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(marketplaceJsonLd) }}
       />
       
+      {/* Floating circles background */}
+      <FloatingCircles />
+      
       <Header />
       
       {/* Horizontal Category Bar - Shown below header on all pages */}
@@ -87,12 +91,12 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <HorizontalCategoryBar categories={activeCategories} />
       )}
       
-      <main className="flex-1">
+      <main className="flex-1 relative z-10">
         {!searchParams.q && (
           <Hero />
         )}
         
-        <div className="container py-8">
+        <div className="container py-8 relative z-10">
           {searchParams.q ? (
             <div className="mb-6">
               <h1 className="text-2xl font-bold">

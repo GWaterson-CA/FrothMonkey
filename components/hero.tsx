@@ -4,7 +4,7 @@ import Link from 'next/link'
 
 export function Hero() {
   return (
-    <section className="bg-gradient-to-br from-primary/10 via-primary/5 to-background">
+    <section className="bg-gradient-to-br from-primary/10 via-primary/5 to-background relative z-10">
       <div className="container px-4 py-8 md:py-16 mx-auto">
         {/* Hero Content */}
         <div className="space-y-6 md:space-y-8 text-center max-w-3xl mx-auto mb-8">

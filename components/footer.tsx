@@ -10,7 +10,7 @@ export function Footer() {
   const version = packageJson.version || '1.2.0'
 
   return (
-    <footer className="border-t bg-background">
+    <footer className="border-t bg-background relative z-10">
       <div className="container py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo & Description */}

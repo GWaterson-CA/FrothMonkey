@@ -99,7 +99,7 @@ export function ListingCard({ listing, initialIsFavorited = false, initialFavori
   }
 
   return (
-    <Card className="group shadow-md hover:shadow-2xl hover:scale-[1.02] transition-all duration-200">
+    <Card className="group shadow-md hover:shadow-2xl hover:scale-[1.02] transition-all duration-200 relative z-20">
       <Link href={`/listing/${listing.id}`}>
         <div className="aspect-square relative overflow-hidden rounded-t-lg bg-muted flex items-center justify-center">
           <Image
