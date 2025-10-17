@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Heart, MapPin } from 'lucide-react'
+import { Heart, MapPin, Clock } from 'lucide-react'
 import { formatCurrency, isAuctionEndingSoon, isAuctionEnded, getImageUrl, formatTimeRemaining } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -99,14 +99,14 @@ export function ListingCard({ listing, initialIsFavorited = false, initialFavori
   }
 
   return (
-    <Card className="group hover:shadow-lg transition-shadow duration-200">
+    <Card className="group hover:shadow-2xl hover:scale-[1.02] transition-all duration-200">
       <Link href={`/listing/${listing.id}`}>
         <div className="aspect-square relative overflow-hidden rounded-t-lg bg-muted flex items-center justify-center">
           <Image
             src={imageUrl}
             alt={listing.title}
             fill
-            className="object-contain group-hover:scale-105 transition-transform duration-200"
+            className="object-contain transition-transform duration-200"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
           />
           
@@ -133,9 +133,7 @@ export function ListingCard({ listing, initialIsFavorited = false, initialFavori
           <Button
             variant="ghost"
             size="icon"
-            className={`absolute top-2 right-2 bg-background/80 hover:bg-background transition-colors ${
-              isFavorited ? 'text-red-500 hover:text-red-600' : ''
-            }`}
+            className="absolute top-2 right-2 bg-background/80 hover:bg-background transition-colors rounded-full text-red-500 hover:text-red-600"
             onClick={handleFavoriteClick}
             disabled={isLoading}
           >
@@ -170,14 +168,26 @@ export function ListingCard({ listing, initialIsFavorited = false, initialFavori
             </span>
           </div>
 
+          {/* Place Bid Button - Only show for live auctions */}
+          {isActuallyLive && (
+            <Link href={`/listing/${listing.id}`}>
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                Place Bid
+              </Button>
+            </Link>
+          )}
+
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <MapPin className="h-3 w-3" />
             <span>{listing.location}</span>
           </div>
 
-          <div className="text-xs">
+          <div className="flex items-center gap-1 text-xs">
             {isActuallyLive ? (
-              <span className="text-muted-foreground">Listing ends in {formatTimeRemaining(listing.end_time)}</span>
+              <>
+                <Clock className="h-3 w-3 text-muted-foreground" />
+                <span className="text-muted-foreground">Listing ends in {formatTimeRemaining(listing.end_time)}</span>
+              </>
             ) : hasEnded && listing.bid_count !== undefined ? (
               <div className="space-y-1">
                 <div className="font-medium text-foreground">
