@@ -218,6 +218,7 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
               location: data.location,
               condition: data.condition,
               start_price: data.startPrice,
+              current_price: data.startPrice, // Set current_price to match start_price
               reserve_price: data.reservePrice || null,
               buy_now_price: data.buyNowPrice || null,
               start_time: data.startTime,
@@ -238,6 +239,7 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
               location: data.location,
               condition: data.condition,
               start_price: data.startPrice,
+              current_price: data.startPrice, // Set current_price to match start_price
               reserve_price: data.reservePrice || null,
               buy_now_price: data.buyNowPrice || null,
               start_time: data.startTime,
