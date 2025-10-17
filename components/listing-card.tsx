@@ -171,7 +171,7 @@ export function ListingCard({ listing, initialIsFavorited = false, initialFavori
           {/* Place Bid Button - Only show for live auctions */}
           {isActuallyLive && (
             <Link href={`/listing/${listing.id}`}>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white hover:scale-105 hover:shadow-lg transition-all duration-200 px-6">
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white hover:scale-105 hover:shadow-lg transition-all duration-200">
                 Place Bid
               </Button>
             </Link>
