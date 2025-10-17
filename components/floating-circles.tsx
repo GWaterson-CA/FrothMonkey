@@ -33,7 +33,7 @@ export function FloatingCircles() {
       color: colors[Math.floor(Math.random() * colors.length)],
       initialX: Math.random() * 100,
       initialY: Math.random() * 100,
-      duration: Math.random() * 20 + 30, // 30-50s
+      duration: Math.random() * 13 + 20, // 20-33s (50% faster)
       delay: Math.random() * -20, // stagger start times
       direction: Math.random() > 0.5 ? 'clockwise' : 'counterclockwise'
     }))
