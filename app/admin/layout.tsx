@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { requireAdmin } from '@/lib/auth'
 import { AdminSidebar } from '@/components/admin/admin-sidebar'
+import { FloatingCircles } from '@/components/floating-circles'
 
 export const metadata: Metadata = {
   robots: {
@@ -18,9 +19,12 @@ export default async function AdminLayout({
   await requireAdmin()
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 relative">
+      {/* Floating circles background */}
+      <FloatingCircles />
+      
       <AdminSidebar />
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 relative z-10">{children}</main>
     </div>
   )
 }

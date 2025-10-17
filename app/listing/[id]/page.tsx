@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
+import { FloatingCircles } from '@/components/floating-circles'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/server'
@@ -226,11 +227,14 @@ export default async function ListingPage({ params }: ListingPageProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
+      {/* Floating circles background */}
+      <FloatingCircles />
+      
       <AnalyticsTracker listingId={listing.id} />
       <Header />
       
-      <main className="flex-1">
+      <main className="flex-1 relative z-10">
         <div className="container py-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Left Column - Main Content */}

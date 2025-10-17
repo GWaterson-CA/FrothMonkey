@@ -6,6 +6,7 @@ import { Footer } from '@/components/footer'
 import { ListingsGrid } from '@/components/listings-grid'
 import { HorizontalCategoryBar } from '@/components/horizontal-category-bar'
 import { RecentlyFinishedAuctions } from '@/components/recently-finished-auctions'
+import { FloatingCircles } from '@/components/floating-circles'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveCategories } from '@/lib/categories'
 import { Button } from '@/components/ui/button'
@@ -117,13 +118,16 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const activeCategories = await getActiveCategories()
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
+      {/* Floating circles background */}
+      <FloatingCircles />
+      
       <Header />
       
       {/* Horizontal Category Bar */}
       <HorizontalCategoryBar categories={activeCategories} />
       
-      <main className="flex-1">
+      <main className="flex-1 relative z-10">
         <div className="container py-8">
           {/* Category Header */}
           <div className="mb-8">
