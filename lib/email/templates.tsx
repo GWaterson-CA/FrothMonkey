@@ -620,3 +620,167 @@ export function FavoriteEndingSoonEmail({
   )
 }
 
+interface QuestionReceivedEmailProps {
+  recipientName: string
+  listingTitle: string
+  listingUrl: string
+  question: string
+  askerName: string
+}
+
+export function QuestionReceivedEmail({ 
+  recipientName, 
+  listingTitle, 
+  listingUrl, 
+  question,
+  askerName
+}: QuestionReceivedEmailProps) {
+  return (
+    <EmailLayout previewText={`New question on "${listingTitle}"`}>
+      <h1 className="title">❓ New Question on Your Listing</h1>
+      <p className="message">
+        Hi {recipientName},
+      </p>
+      <p className="message">
+        {askerName} has asked a question about your listing "{listingTitle}".
+      </p>
+      
+      <div className="details">
+        <div className="details-row">
+          <span className="details-label">Listing:</span>
+          <span className="details-value">{listingTitle}</span>
+        </div>
+        <div className="details-row">
+          <span className="details-label">Asked by:</span>
+          <span className="details-value">{askerName}</span>
+        </div>
+      </div>
+
+      <div style={{ 
+        backgroundColor: '#f9f9f9', 
+        padding: '20px', 
+        borderRadius: '8px', 
+        marginTop: '20px',
+        borderLeft: '4px solid #667eea'
+      }}>
+        <p style={{ 
+          fontStyle: 'italic', 
+          color: '#4a4a4a',
+          margin: 0,
+          fontSize: '15px',
+          lineHeight: '1.6'
+        }}>
+          "{question}"
+        </p>
+      </div>
+
+      <p style={{ textAlign: 'center', marginTop: 30 }}>
+        <a href={listingUrl} className="button">
+          Answer Question
+        </a>
+      </p>
+      
+      <p className="message" style={{ marginTop: 30, fontSize: 14 }}>
+        Answering questions promptly helps build trust with potential buyers and can lead to more bids!
+      </p>
+    </EmailLayout>
+  )
+}
+
+interface QuestionAnsweredEmailProps {
+  recipientName: string
+  listingTitle: string
+  listingUrl: string
+  question: string
+  answer: string
+  sellerName: string
+}
+
+export function QuestionAnsweredEmail({ 
+  recipientName, 
+  listingTitle, 
+  listingUrl, 
+  question,
+  answer,
+  sellerName
+}: QuestionAnsweredEmailProps) {
+  return (
+    <EmailLayout previewText={`Your question about "${listingTitle}" was answered`}>
+      <h1 className="title">✅ Your Question Was Answered</h1>
+      <p className="message">
+        Hi {recipientName},
+      </p>
+      <p className="message">
+        {sellerName} has answered your question about "{listingTitle}".
+      </p>
+      
+      <div className="details">
+        <div className="details-row">
+          <span className="details-label">Listing:</span>
+          <span className="details-value">{listingTitle}</span>
+        </div>
+        <div className="details-row">
+          <span className="details-label">Answered by:</span>
+          <span className="details-value">{sellerName}</span>
+        </div>
+      </div>
+
+      <div style={{ 
+        backgroundColor: '#f9f9f9', 
+        padding: '20px', 
+        borderRadius: '8px', 
+        marginTop: '20px',
+        borderLeft: '4px solid #999'
+      }}>
+        <p style={{ 
+          fontSize: '13px',
+          color: '#999',
+          margin: '0 0 10px 0',
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px'
+        }}>
+          Your Question:
+        </p>
+        <p style={{ 
+          fontStyle: 'italic', 
+          color: '#666',
+          margin: '0 0 20px 0',
+          fontSize: '14px'
+        }}>
+          "{question}"
+        </p>
+        <p style={{ 
+          fontSize: '13px',
+          color: '#999',
+          margin: '0 0 10px 0',
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px'
+        }}>
+          Answer:
+        </p>
+        <p style={{ 
+          color: '#333',
+          margin: 0,
+          fontSize: '15px',
+          lineHeight: '1.6',
+          fontWeight: 500
+        }}>
+          {answer}
+        </p>
+      </div>
+
+      <p style={{ textAlign: 'center', marginTop: 30 }}>
+        <a href={listingUrl} className="button">
+          View Listing
+        </a>
+      </p>
+      
+      <p className="message" style={{ marginTop: 30, fontSize: 14 }}>
+        Now that your question has been answered, you can place a bid if you're interested!
+      </p>
+    </EmailLayout>
+  )
+}
+

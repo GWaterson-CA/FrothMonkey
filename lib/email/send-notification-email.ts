@@ -10,7 +10,9 @@ import {
   ConfirmEmail,
   ResetPasswordEmail,
   FavoriteReserveMetEmail,
-  FavoriteEndingSoonEmail
+  FavoriteEndingSoonEmail,
+  QuestionReceivedEmail,
+  QuestionAnsweredEmail
 } from './templates'
 
 interface NotificationEmailData {
@@ -144,6 +146,29 @@ export async function sendNotificationEmail({
         })
         break
 
+      case 'question_received':
+        subject = `New question on "${data.listingTitle}"`
+        reactContent = React.createElement(QuestionReceivedEmail, {
+          recipientName,
+          listingTitle: data.listingTitle,
+          listingUrl: `${APP_URL}/listing/${data.listingId}`,
+          question: data.question,
+          askerName: data.askerName
+        })
+        break
+
+      case 'question_answered':
+        subject = `Your question about "${data.listingTitle}" was answered`
+        reactContent = React.createElement(QuestionAnsweredEmail, {
+          recipientName,
+          listingTitle: data.listingTitle,
+          listingUrl: `${APP_URL}/listing/${data.listingId}`,
+          question: data.question,
+          answer: data.answer,
+          sellerName: data.sellerName
+        })
+        break
+
       default:
         console.error(`[Email] No email template for notification type: ${notificationType}`)
         return { success: false, error: `Unknown notification type: ${notificationType}` }
@@ -228,7 +253,9 @@ export async function shouldSendEmail(
     'time_warning_24h': 'time_warning_enabled',
     'time_warning_48h': 'time_warning_enabled',
     'favorite_reserve_met': 'favorite_notifications',
-    'favorite_ending_soon': 'favorite_notifications'
+    'favorite_ending_soon': 'favorite_notifications',
+    'question_received': 'question_received',
+    'question_answered': 'question_answered'
   }
 
   const preferenceKey = preferenceMap[notificationType]

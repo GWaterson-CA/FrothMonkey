@@ -139,7 +139,9 @@ serve(async (req) => {
       'time_warning_6h',
       'time_warning_12h',
       'time_warning_24h',
-      'time_warning_48h'
+      'time_warning_48h',
+      'question_received',
+      'question_answered'
     ]
     
     if (!emailableTypes.includes(notification.type)) {
@@ -183,6 +185,22 @@ serve(async (req) => {
       console.log('User has outbid notifications disabled')
       return new Response(
         JSON.stringify({ success: true, skipped: true, reason: 'Outbid notifications disabled' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (notification.type === 'question_received' && preferences.question_received === false) {
+      console.log('User has question received notifications disabled')
+      return new Response(
+        JSON.stringify({ success: true, skipped: true, reason: 'Question received notifications disabled' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (notification.type === 'question_answered' && preferences.question_answered === false) {
+      console.log('User has question answered notifications disabled')
+      return new Response(
+        JSON.stringify({ success: true, skipped: true, reason: 'Question answered notifications disabled' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -598,6 +616,148 @@ serve(async (req) => {
                   <strong>Next Steps:</strong> You can now exchange contact information with the buyer through our messaging system.
                 </div>
                 ` : ''}
+              </div>
+              <div class="footer">
+                <p>You're receiving this because you have email notifications enabled.</p>
+                <p><a href="${appUrl}/account/settings">Manage your notification preferences</a></p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `
+    } else if (notification.type === 'question_received') {
+      const question = notification.metadata?.question || 'No question text'
+      const askerName = notification.metadata?.asker_name || 'Someone'
+
+      subject = `❓ New question on "${listingTitle}"`
+      htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background-color: #8b5cf6; color: white; padding: 20px; text-align: center; }
+              .logo { max-width: 150px; height: auto; margin-bottom: 15px; }
+              .content { padding: 20px; background-color: #f9fafb; }
+              .listing-preview { background-color: white; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; }
+              .listing-image { width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto; }
+              .listing-title { font-size: 20px; font-weight: bold; color: #1a1a1a; margin: 0; }
+              .details { background-color: white; padding: 15px; margin: 20px 0; border-radius: 5px; }
+              .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
+              .question-box { background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #8b5cf6; }
+              .question-text { font-style: italic; color: #4a4a4a; margin: 0; font-size: 15px; line-height: 1.6; }
+              .button { display: inline-block; background-color: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+              .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 14px; }
+              .tip { background-color: #eff6ff; padding: 15px; border-left: 4px solid #3b82f6; margin: 20px 0; border-radius: 4px; font-size: 14px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <img src="https://frothmonkey.com/FrothMonkey%20Logo%20Blue.png" alt="FrothMonkey" class="logo" />
+                <h1>❓ New Question on Your Listing</h1>
+              </div>
+              <div class="content">
+                <p>Hi ${recipientName},</p>
+                <p>${askerName} has asked a question about your listing "${listingTitle}".</p>
+                <div class="listing-preview">
+                  <img src="${listingImage}" alt="${listingTitle}" class="listing-image" />
+                  <h2 class="listing-title">${listingTitle}</h2>
+                </div>
+                <div class="details">
+                  <div class="detail-row">
+                    <span><strong>Listing:</strong></span>
+                    <span>${listingTitle}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span><strong>Asked by:</strong></span>
+                    <span>${askerName}</span>
+                  </div>
+                </div>
+                <div class="question-box">
+                  <p class="question-text">"${question}"</p>
+                </div>
+                <div style="text-align: center;">
+                  <a href="${listingUrl}" class="button">Answer Question</a>
+                </div>
+                <div class="tip">
+                  <strong>💡 Tip:</strong> Answering questions promptly helps build trust with potential buyers and can lead to more bids!
+                </div>
+              </div>
+              <div class="footer">
+                <p>You're receiving this because you have email notifications enabled.</p>
+                <p><a href="${appUrl}/account/settings">Manage your notification preferences</a></p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `
+    } else if (notification.type === 'question_answered') {
+      const question = notification.metadata?.question || 'Your question'
+      const answer = notification.metadata?.answer || 'No answer text'
+      const sellerName = notification.metadata?.seller_name || 'The seller'
+
+      subject = `✅ Your question about "${listingTitle}" was answered`
+      htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background-color: #10b981; color: white; padding: 20px; text-align: center; }
+              .logo { max-width: 150px; height: auto; margin-bottom: 15px; }
+              .content { padding: 20px; background-color: #f9fafb; }
+              .listing-preview { background-color: white; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; }
+              .listing-image { width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto; }
+              .listing-title { font-size: 20px; font-weight: bold; color: #1a1a1a; margin: 0; }
+              .details { background-color: white; padding: 15px; margin: 20px 0; border-radius: 5px; }
+              .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
+              .qa-box { background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #999; }
+              .qa-label { font-size: 13px; color: #999; margin: 0 0 10px 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+              .question-text { font-style: italic; color: #666; margin: 0 0 20px 0; font-size: 14px; }
+              .answer-text { color: #333; margin: 0; font-size: 15px; line-height: 1.6; font-weight: 500; }
+              .button { display: inline-block; background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+              .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 14px; }
+              .tip { background-color: #ecfdf5; padding: 15px; border-left: 4px solid #10b981; margin: 20px 0; border-radius: 4px; font-size: 14px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <img src="https://frothmonkey.com/FrothMonkey%20Logo%20Blue.png" alt="FrothMonkey" class="logo" />
+                <h1>✅ Your Question Was Answered</h1>
+              </div>
+              <div class="content">
+                <p>Hi ${recipientName},</p>
+                <p>${sellerName} has answered your question about "${listingTitle}".</p>
+                <div class="listing-preview">
+                  <img src="${listingImage}" alt="${listingTitle}" class="listing-image" />
+                  <h2 class="listing-title">${listingTitle}</h2>
+                </div>
+                <div class="details">
+                  <div class="detail-row">
+                    <span><strong>Listing:</strong></span>
+                    <span>${listingTitle}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span><strong>Answered by:</strong></span>
+                    <span>${sellerName}</span>
+                  </div>
+                </div>
+                <div class="qa-box">
+                  <p class="qa-label">Your Question:</p>
+                  <p class="question-text">"${question}"</p>
+                  <p class="qa-label">Answer:</p>
+                  <p class="answer-text">${answer}</p>
+                </div>
+                <div style="text-align: center;">
+                  <a href="${listingUrl}" class="button">View Listing</a>
+                </div>
+                <div class="tip">
+                  <strong>💡 Interested?</strong> Now that your question has been answered, you can place a bid if you're interested!
+                </div>
               </div>
               <div class="footer">
                 <p>You're receiving this because you have email notifications enabled.</p>
