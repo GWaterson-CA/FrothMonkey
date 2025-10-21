@@ -18,6 +18,7 @@ import { ShareButton } from '@/components/share-button'
 import { ReportButton } from '@/components/report-button'
 import { AnalyticsTracker } from '@/components/analytics-tracker'
 import { CombinedBiddingCard } from '@/components/combined-bidding-card'
+import { ViewsAndShare } from '@/components/views-and-share'
 
 // Helper function to format payment method labels
 function formatPaymentMethod(method: string): string {
@@ -227,6 +228,12 @@ export default async function ListingPage({ params }: ListingPageProps) {
     }
   }
 
+  // Fetch listing view count
+  const { data: viewCountData } = await supabase
+    .rpc('get_listing_view_count', { listing_uuid: params.id })
+  
+  const viewCount = viewCountData || 0
+
   return (
     <div className="min-h-screen flex flex-col relative">
       {/* Floating circles background */}
@@ -360,6 +367,13 @@ export default async function ListingPage({ params }: ListingPageProps) {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Views and Share */}
+              <ViewsAndShare 
+                viewCount={viewCount}
+                listingId={listing.id}
+                title={listing.title}
+              />
             </div>
 
             {/* Right Sidebar */}

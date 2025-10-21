@@ -92,6 +92,21 @@ export function EmailTestInterface() {
         testData = {
           resetUrl: 'https://frothmonkey.com/auth/reset-password?token=test-reset-token-456'
         }
+      } else if (notificationType === 'question_received') {
+        testData = {
+          listingId: 'test-listing-id',
+          listingTitle: 'Test Auction Listing',
+          question: 'Is this item in good condition? Does it come with all accessories?',
+          askerName: 'John Doe'
+        }
+      } else if (notificationType === 'question_answered') {
+        testData = {
+          listingId: 'test-listing-id',
+          listingTitle: 'Test Auction Listing',
+          question: 'Is this item in good condition? Does it come with all accessories?',
+          answer: 'Yes, the item is in excellent condition and comes with all original accessories including the box, manual, and cables.',
+          sellerName: 'Jane Smith'
+        }
       } else {
         testData = {
           message: testMessage
@@ -167,7 +182,9 @@ export function EmailTestInterface() {
     { value: 'time_warning_24h', label: '24 Hour Warning' },
     { value: 'time_warning_2h', label: '2 Hour Warning' },
     { value: 'listing_ended_seller', label: 'Auction Ended (Seller)' },
-    { value: 'auction_won', label: 'Auction Won (Buyer)' }
+    { value: 'auction_won', label: 'Auction Won (Buyer)' },
+    { value: 'question_received', label: 'Question Received (Seller)' },
+    { value: 'question_answered', label: 'Question Answered (User)' }
   ]
 
   return (
