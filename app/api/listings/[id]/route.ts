@@ -287,11 +287,15 @@ export async function DELETE(
       }, { status: 400 })
     }
 
-    if (['ended', 'sold'].includes(listing.status)) {
+    if (listing.status === 'sold') {
       return NextResponse.json({ 
-        error: 'Cannot delete listing that has ended or been sold' 
+        error: 'Cannot delete listing that has been sold' 
       }, { status: 400 })
     }
+
+    // Use service client to bypass RLS for deletion
+    const { createServiceClient } = await import('@/lib/supabase/server')
+    const serviceSupabase = createServiceClient()
 
     // Delete images from storage
     if (listing.listing_images && listing.listing_images.length > 0) {
@@ -303,20 +307,20 @@ export async function DELETE(
       }
 
       if (imagePaths.length > 0) {
-        await supabase.storage
+        await serviceSupabase.storage
           .from('listing-images')
           .remove(imagePaths)
       }
     }
 
     // Delete listing images from database
-    await supabase
+    await serviceSupabase
       .from('listing_images')
       .delete()
       .eq('listing_id', params.id)
 
     // Delete the listing
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await serviceSupabase
       .from('listings')
       .delete()
       .eq('id', params.id)

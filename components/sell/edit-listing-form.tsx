@@ -257,31 +257,15 @@ export function EditListingForm({ listing, categories, userId, hasBids }: EditLi
     setIsDeleting(true)
 
     try {
-      // Delete listing images from storage and database
-      if (images.length > 0) {
-        // Delete from storage
-        const imagePaths = images.filter(img => img.path).map(img => img.path)
-        if (imagePaths.length > 0) {
-          await supabase.storage
-            .from('listing-images')
-            .remove(imagePaths)
-        }
+      // Call the API endpoint to delete the listing
+      const response = await fetch(`/api/listings/${listing.id}`, {
+        method: 'DELETE',
+      })
 
-        // Delete from listing_images table
-        await supabase
-          .from('listing_images')
-          .delete()
-          .eq('listing_id', listing.id)
-      }
+      const data = await response.json()
 
-      // Delete the listing
-      const { error } = await supabase
-        .from('listings')
-        .delete()
-        .eq('id', listing.id)
-
-      if (error) {
-        throw error
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete listing')
       }
 
       toast({
@@ -294,7 +278,7 @@ export function EditListingForm({ listing, categories, userId, hasBids }: EditLi
       console.error('Delete error:', error)
       toast({
         title: 'Error',
-        description: 'Failed to delete listing',
+        description: error instanceof Error ? error.message : 'Failed to delete listing',
         variant: 'destructive',
       })
     } finally {

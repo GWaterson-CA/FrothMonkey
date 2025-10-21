@@ -100,7 +100,7 @@ export function FloatingCircles() {
         {circles.map((circle) => (
           <div
             key={circle.id}
-            className="absolute rounded-full blur-lg"
+            className="absolute rounded-full blur-2xl"
             style={{
               width: `${circle.size}px`,
               height: `${circle.size}px`,

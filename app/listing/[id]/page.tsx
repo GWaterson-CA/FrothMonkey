@@ -197,7 +197,7 @@ export default async function ListingPage({ params }: ListingPageProps) {
     notFound()
   }
 
-  // Fetch recent bids
+  // Fetch recent bids - ordered by amount (highest first), then by created_at (earliest first for ties)
   const { data: bids } = await supabase
     .from('bids')
     .select(`
@@ -207,7 +207,8 @@ export default async function ListingPage({ params }: ListingPageProps) {
       )
     `)
     .eq('listing_id', params.id)
-    .order('created_at', { ascending: false })
+    .order('amount', { ascending: false })
+    .order('created_at', { ascending: true })
     .limit(20)
 
   const isOwner = profile?.id === listing.owner_id

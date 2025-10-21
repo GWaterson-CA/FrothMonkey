@@ -11,10 +11,12 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/components/ui/use-toast'
 import { formatCurrency } from '@/lib/utils'
-import { Loader2, Gavel, ShoppingCart } from 'lucide-react'
+import { Loader2, Gavel, ShoppingCart, Info } from 'lucide-react'
 import { BiddingAgreementModal } from '@/components/bidding-agreement-modal'
 import { createClient } from '@/lib/supabase/client'
 import { CountdownTimer } from '@/components/countdown-timer'
+import { Switch } from '@/components/ui/switch'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 const bidSchema = z.object({
   amount: z.number().min(1, 'Bid amount must be at least $1.00').multipleOf(1, 'Bids must be in full dollars (no cents)'),
@@ -55,6 +57,9 @@ export function CombinedBiddingCard({
   const [minimumBid, setMinimumBid] = useState<number | null>(null)
   const [showAgreementModal, setShowAgreementModal] = useState(false)
   const [hasAcceptedAgreement, setHasAcceptedAgreement] = useState<boolean | null>(null)
+  const [isAutoBidEnabled, setIsAutoBidEnabled] = useState(false)
+  const [existingAutoBid, setExistingAutoBid] = useState<{ id: string; maxAmount: number; enabled: boolean } | null>(null)
+  const [isWinning, setIsWinning] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
   const supabase = createClient()
@@ -71,7 +76,7 @@ export function CombinedBiddingCard({
 
   const bidAmount = watch('amount')
 
-  // Check if user has accepted bidding agreement and fetch minimum bid
+  // Check if user has accepted bidding agreement, fetch minimum bid, check for existing auto-bid, and check if user is winning
   useEffect(() => {
     const checkAgreementAndFetchMinBid = async () => {
       try {
@@ -85,6 +90,40 @@ export function CombinedBiddingCard({
             .single()
           
           setHasAcceptedAgreement(!!profile?.bidding_agreement_accepted_at)
+
+          // Check if user is currently winning (has the highest bid)
+          const { data: highestBid } = await supabase
+            .from('bids')
+            .select('bidder_id, amount')
+            .eq('listing_id', listingId)
+            .order('amount', { ascending: false })
+            .order('created_at', { ascending: true })
+            .limit(1)
+            .single()
+
+          if (highestBid && highestBid.bidder_id === user.id) {
+            setIsWinning(true)
+          } else {
+            setIsWinning(false)
+          }
+
+          // Fetch existing auto-bid
+          const autoBidResponse = await fetch('/api/auto-bid/get', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ listingId }),
+          })
+
+          if (autoBidResponse.ok) {
+            const autoBidData = await autoBidResponse.json()
+            if (autoBidData.autoBid && autoBidData.autoBid.enabled) {
+              setExistingAutoBid(autoBidData.autoBid)
+              setIsAutoBidEnabled(true)
+              setValue('amount', autoBidData.autoBid.maxAmount)
+            }
+          }
         }
 
         // Fetch minimum bid
@@ -99,17 +138,20 @@ export function CombinedBiddingCard({
         if (response.ok) {
           const data = await response.json()
           setMinimumBid(data.minimumBid)
-          setValue('amount', data.minimumBid)
+          // Only set the amount to minimum if no auto-bid exists
+          if (!existingAutoBid) {
+            setValue('amount', data.minimumBid)
+          }
         }
       } catch (error) {
         console.error('Error fetching data:', error)
       }
     }
 
-    if (canBid) {
+    if (canBid || isLoggedIn) {
       checkAgreementAndFetchMinBid()
     }
-  }, [listingId, setValue, currentPrice, supabase, canBid])
+  }, [listingId, setValue, currentPrice, supabase, canBid, isLoggedIn])
 
   const onSubmit = async (data: BidFormData) => {
     // Check if user has accepted bidding agreement
@@ -121,48 +163,87 @@ export function CombinedBiddingCard({
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/rpc/place-bid', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          listingId,
-          amount: data.amount,
-          isBuyNow: false,
-        }),
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        toast({
-          title: 'Bid Failed',
-          description: result.error || 'Failed to place bid',
-          variant: 'destructive',
+      // If auto-bid is enabled, use the auto-bid API
+      if (isAutoBidEnabled) {
+        const response = await fetch('/api/auto-bid/set', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            listingId,
+            maxAmount: data.amount,
+          }),
         })
 
-        if (result.minimumRequired) {
-          setMinimumBid(result.minimumRequired)
-          setValue('amount', result.minimumRequired)
+        const result = await response.json()
+
+        if (!response.ok) {
+          toast({
+            title: 'Auto-Bid Failed',
+            description: result.error || 'Failed to set auto-bid',
+            variant: 'destructive',
+          })
+
+          if (result.minimumRequired) {
+            setMinimumBid(result.minimumRequired)
+            setValue('amount', result.minimumRequired)
+          }
+          return
         }
-        return
-      }
 
-      if (result.buyNow) {
         toast({
-          title: 'Purchase Successful!',
-          description: `You have successfully purchased this item for ${formatCurrency(result.newHighest)}`,
+          title: 'Auto-Bid Set!',
+          description: `Auto-bid enabled with maximum of ${formatCurrency(data.amount)}. We'll bid for you automatically when you're outbid.`,
         })
+
+        // Reload the page to show updated data
+        window.location.reload()
       } else {
-        toast({
-          title: 'Bid Placed!',
-          description: `Your bid of ${formatCurrency(result.newHighest)} has been placed successfully`,
+        // Regular manual bid
+        const response = await fetch('/api/rpc/place-bid', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            listingId,
+            amount: data.amount,
+            isBuyNow: false,
+          }),
         })
-      }
 
-      // Refresh the page to show updated data
-      router.refresh()
+        const result = await response.json()
+
+        if (!response.ok) {
+          toast({
+            title: 'Bid Failed',
+            description: result.error || 'Failed to place bid',
+            variant: 'destructive',
+          })
+
+          if (result.minimumRequired) {
+            setMinimumBid(result.minimumRequired)
+            setValue('amount', result.minimumRequired)
+          }
+          return
+        }
+
+        if (result.buyNow) {
+          toast({
+            title: 'Purchase Successful!',
+            description: `You have successfully purchased this item for ${formatCurrency(result.newHighest)}`,
+          })
+        } else {
+          toast({
+            title: 'Bid Placed!',
+            description: `Your bid of ${formatCurrency(result.newHighest)} has been placed successfully`,
+          })
+        }
+
+        // Reload the page to show updated data
+        window.location.reload()
+      }
     } catch (error) {
       toast({
         title: 'Error',
@@ -214,7 +295,8 @@ export function CombinedBiddingCard({
         description: `You have successfully purchased this item for ${formatCurrency(buyNowPrice)}`,
       })
 
-      router.refresh()
+      // Reload the page to show updated data
+      window.location.reload()
     } catch (error) {
       toast({
         title: 'Error',
@@ -231,10 +313,17 @@ export function CombinedBiddingCard({
   }
 
   return (
-    <>
+    <TooltipProvider>
       <Card>
         <CardHeader>
-          <CardTitle>Current Bid</CardTitle>
+          <CardTitle className="flex items-center gap-3">
+            <span>Current Bid</span>
+            {isWinning && isLive && (
+              <span className="text-base font-semibold text-blue-600">
+                YOU ARE CURRENTLY WINNING
+              </span>
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Current Bid Display */}
@@ -292,7 +381,7 @@ export function CombinedBiddingCard({
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Bid Amount</Label>
+                  <Label htmlFor="amount">{isAutoBidEnabled ? 'Maximum Bid Amount' : 'Bid Amount'}</Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                       $
@@ -302,7 +391,7 @@ export function CombinedBiddingCard({
                       type="number"
                       step="1"
                       min={minimumBid || 1}
-                      placeholder="Enter bid amount"
+                      placeholder={isAutoBidEnabled ? "Enter maximum bid" : "Enter bid amount"}
                       className="pl-6"
                       {...register('amount', { valueAsNumber: true })}
                       disabled={isLoading}
@@ -318,10 +407,42 @@ export function CombinedBiddingCard({
                   )}
                 </div>
 
+                {/* Auto-Bid Toggle */}
+                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="auto-bid" className="cursor-pointer">
+                      Auto Bid
+                    </Label>
+                    <Tooltip>
+                      <TooltipTrigger type="button" onClick={(e) => e.preventDefault()}>
+                        <Info className="h-4 w-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs" side="top">
+                        <div className="space-y-1 text-xs">
+                          <p className="font-semibold">When you set an auto-bid:</p>
+                          <p>• You set your maximum bid amount.</p>
+                          <p>• When someone bids higher than you, we'll place the next minimum bid for you.</p>
+                          <p>• You'll stay in the lead – until you reach your maximum bid.</p>
+                          <p>• No additional bids will be placed if you lead the bidding.</p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <Switch
+                    id="auto-bid"
+                    checked={isAutoBidEnabled}
+                    onCheckedChange={setIsAutoBidEnabled}
+                    disabled={isLoading}
+                  />
+                </div>
+
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   <Gavel className="mr-2 h-4 w-4" />
-                  Place Bid {bidAmount ? `(${formatCurrency(bidAmount)})` : ''}
+                  {isAutoBidEnabled 
+                    ? `Set Auto-Bid ${bidAmount ? `(Max: ${formatCurrency(bidAmount)})` : ''}` 
+                    : `Place Bid ${bidAmount ? `(${formatCurrency(bidAmount)})` : ''}`
+                  }
                 </Button>
               </form>
 
@@ -416,6 +537,6 @@ export function CombinedBiddingCard({
         onClose={() => setShowAgreementModal(false)}
         onAccepted={handleAgreementAccepted}
       />
-    </>
+    </TooltipProvider>
   )
 }

@@ -179,6 +179,51 @@ export type Database = {
           },
         ]
       }
+      auto_bids: {
+        Row: {
+          id: string
+          user_id: string
+          listing_id: string
+          max_amount: number
+          enabled: boolean
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          listing_id: string
+          max_amount: number
+          enabled?: boolean
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          listing_id?: string
+          max_amount?: number
+          enabled?: boolean
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auto_bids_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auto_bids_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bids: {
         Row: {
           amount: number
@@ -186,6 +231,7 @@ export type Database = {
           created_at: string | null
           id: number
           listing_id: string
+          is_auto_bid: boolean
         }
         Insert: {
           amount: number
@@ -193,6 +239,7 @@ export type Database = {
           created_at?: string | null
           id?: number
           listing_id: string
+          is_auto_bid?: boolean
         }
         Update: {
           amount?: number
@@ -200,6 +247,7 @@ export type Database = {
           created_at?: string | null
           id?: number
           listing_id?: string
+          is_auto_bid?: boolean
         }
         Relationships: [
           {
@@ -783,6 +831,45 @@ export type Database = {
           bidder: string
         }
         Returns: Json
+      }
+      set_auto_bid: {
+        Args: {
+          p_user_id: string
+          p_listing_id: string
+          p_max_amount: number
+        }
+        Returns: Json
+      }
+      cancel_auto_bid: {
+        Args: {
+          p_user_id: string
+          p_listing_id: string
+        }
+        Returns: Json
+      }
+      get_auto_bid: {
+        Args: {
+          p_user_id: string
+          p_listing_id: string
+        }
+        Returns: {
+          id: string
+          max_amount: number
+          enabled: boolean
+          created_at: string
+          updated_at: string
+        }[]
+      }
+      process_auto_bids: {
+        Args: {
+          p_listing_id: string
+          p_triggering_bidder_id: string
+        }
+        Returns: {
+          auto_bid_placed: boolean
+          new_bidder_id: string
+          new_amount: number
+        }[]
       }
       schedule_auction_finalization: {
         Args: Record<PropertyKey, never>

@@ -11,6 +11,7 @@ interface Bid {
   id: number
   amount: number
   created_at: string
+  is_auto_bid: boolean
   profiles: {
     username: string | null
   } | null
@@ -54,7 +55,18 @@ export function BidHistory({ listingId, initialBids }: BidHistoryProps) {
               .single()
 
             if (newBid) {
-              setBids((prevBids) => [newBid, ...prevBids].slice(0, 20))
+              // Add new bid and re-sort by amount (desc), then created_at (asc)
+              setBids((prevBids) => {
+                const updated = [newBid, ...prevBids]
+                return updated
+                  .sort((a, b) => {
+                    if (b.amount !== a.amount) {
+                      return b.amount - a.amount // Higher amount first
+                    }
+                    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime() // Earlier time first for ties
+                  })
+                  .slice(0, 20)
+              })
             }
           }
         )
@@ -113,8 +125,13 @@ export function BidHistory({ listingId, initialBids }: BidHistoryProps) {
                 <div>
                   <div className="font-medium">
                     @{bid.profiles?.username || 'Unknown'}
+                    {bid.is_auto_bid && (
+                      <span className="text-xs text-muted-foreground ml-2 font-normal">
+                        (Auto-bid)
+                      </span>
+                    )}
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-muted-foreground" suppressHydrationWarning>
                     {formatRelativeTime(bid.created_at)}
                   </div>
                 </div>
