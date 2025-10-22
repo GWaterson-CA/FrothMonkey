@@ -101,7 +101,6 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
           `)
           .eq('status', 'live')
           .gte('end_time', now)
-          .lte('end_time', new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString()) // Next 2 hours
           .order('end_time', { ascending: true })
           .limit(12)
         
@@ -181,7 +180,8 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
         }
         break
       case 'reserve-met':
-        // Override the base status filter to only show live auctions
+        // Show both live and ended/sold auctions with reserve met
+        // We'll fetch more than 12 and sort them manually to ensure live listings come first
         query = supabase
           .from('listings')
           .select(`
@@ -197,10 +197,9 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
               id
             )
           `)
-          .eq('status', 'live')
           .eq('reserve_met', true)
-          .order('end_time', { ascending: true })
-          .limit(12)
+          .in('status', ['live', 'ended', 'sold'])
+          .limit(24) // Fetch more to ensure we have enough after sorting
         
         // Re-apply search and category filters if present
         if (searchParams.q) {
@@ -237,7 +236,7 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
     query = query.order('created_at', { ascending: false })
   }
 
-  const { data: listings, error } = await query
+  const { data: fetchedListings, error } = await query
 
   if (error) {
     console.error('Error fetching listings:', error)
@@ -246,6 +245,18 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
         <p className="text-muted-foreground">Failed to load listings</p>
       </div>
     )
+  }
+
+  // Sort listings for reserve-met filter: live first, then ended/sold
+  let listings = fetchedListings
+  if (searchParams.filter === 'reserve-met' && listings && listings.length > 0) {
+    listings = [...listings].sort((a, b) => {
+      // Live listings first
+      if (a.status === 'live' && b.status !== 'live') return -1
+      if (a.status !== 'live' && b.status === 'live') return 1
+      // Within same status group, sort by end_time
+      return new Date(a.end_time).getTime() - new Date(b.end_time).getTime()
+    }).slice(0, 12) // Limit to 12 after sorting
   }
 
   if (!listings || listings.length === 0) {
