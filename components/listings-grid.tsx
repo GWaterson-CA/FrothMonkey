@@ -250,11 +250,19 @@ export async function ListingsGrid({ searchParams }: ListingsGridProps) {
   // Sort listings for reserve-met filter: live first, then ended/sold
   let listings = fetchedListings
   if (searchParams.filter === 'reserve-met' && listings && listings.length > 0) {
+    // Create a copy and sort with explicit priority
     listings = [...listings].sort((a, b) => {
-      // Live listings first
-      if (a.status === 'live' && b.status !== 'live') return -1
-      if (a.status !== 'live' && b.status === 'live') return 1
-      // Within same status group, sort by end_time
+      // Explicit status priority: live = 0, ended/sold = 1
+      const getStatusPriority = (status: string) => status === 'live' ? 0 : 1
+      const priorityA = getStatusPriority(a.status)
+      const priorityB = getStatusPriority(b.status)
+      
+      // Sort by status priority first (live before ended/sold)
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB
+      }
+      
+      // Within same status group, sort by end_time (ascending - soonest first)
       return new Date(a.end_time).getTime() - new Date(b.end_time).getTime()
     }).slice(0, 12) // Limit to 12 after sorting
   }
