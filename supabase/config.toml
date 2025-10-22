@@ -53,7 +53,11 @@ enabled = false
 enabled = false
 
 [auth.external.google]
-enabled = false
+enabled = true
+# For local development, you'll need to add your Google OAuth credentials:
+# client_id = "your-google-client-id"
+# secret = "your-google-client-secret"
+# Note: Production credentials are configured in the Supabase dashboard
 
 [auth.external.keycloak]
 enabled = false
