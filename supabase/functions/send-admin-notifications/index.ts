@@ -10,7 +10,7 @@ const corsHeaders = {
 }
 
 // Admin email to receive notifications
-const ADMIN_EMAIL = 'frothmonkey@myyahoo.com'
+const ADMIN_EMAIL = 'frothmonkeyca@gmail.com'
 
 serve(async (req) => {
   // Handle CORS preflight requests

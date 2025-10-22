@@ -12,19 +12,19 @@ export interface CategoryWithSubcategories extends Tables<'categories'> {
 export async function getCategoriesWithCounts(includeEmpty: boolean = true): Promise<CategoryWithSubcategories[]> {
   const supabase = createClient()
   
-  // Fetch top-level categories
+  // Fetch top-level categories (sorted alphabetically)
   const { data: topLevelCategories } = await supabase
     .from('categories')
     .select('*')
     .is('parent_id', null)
-    .order('sort_order')
+    .order('name')
   
-  // Fetch all subcategories
+  // Fetch all subcategories (sorted alphabetically)
   const { data: subcategories } = await supabase
     .from('categories')
     .select('*')
     .not('parent_id', 'is', null)
-    .order('sort_order')
+    .order('name')
   
   // If we need to filter empty categories, we need to check if they have ANY listings (not just active)
   let categoryIdsWithListings: Set<string> | null = null
@@ -69,15 +69,15 @@ export async function getCategoriesWithCounts(includeEmpty: boolean = true): Pro
       return true
     })
   
-  // Sort categories by active listing count (highest first), then by sort_order
+  // Sort categories by active listing count (highest first), then alphabetically
   if (!includeEmpty) {
     categoriesWithSubs.sort((a, b) => {
       // First sort by active count (descending)
       if (b.active_listing_count !== a.active_listing_count) {
         return b.active_listing_count - a.active_listing_count
       }
-      // Then by sort_order (ascending)
-      return (a.sort_order || 999) - (b.sort_order || 999)
+      // Then alphabetically by name (ascending)
+      return a.name.localeCompare(b.name)
     })
   }
   

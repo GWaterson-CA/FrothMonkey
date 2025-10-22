@@ -1,0 +1,197 @@
+================================================================================
+EMAIL AUTOMATION INVESTIGATION - FILES CREATED
+================================================================================
+Date: October 22, 2025
+Admin Email Updated To: frothmonkeyca@gmail.com
+
+================================================================================
+QUICK START FILES (Start with these!)
+================================================================================
+
+1. START_HERE.md
+   → The absolute quickest way to fix the issue (4 steps, ~20 minutes)
+   → Read this first!
+
+2. QUICK_START_EMAIL_FIX.md
+   → Detailed quick start guide with step-by-step instructions
+   → Use this if you want more details than START_HERE
+
+3. EMAIL_AUTOMATION_SUMMARY.md
+   → Overview of what's wrong and what I've done
+   → Good for understanding the issue
+
+================================================================================
+DETAILED GUIDES
+================================================================================
+
+4. EMAIL_AUTOMATION_ACTION_PLAN.md
+   → Complete 20-page troubleshooting guide
+   → Covers everything in detail
+   → Use when you need deep troubleshooting
+
+5. WEBHOOK_CONFIGURATION_GUIDE.md
+   → Detailed webhook setup instructions with screenshots guidance
+   → Critical step that's probably missing
+   → Step-by-step for each of 3 webhooks
+
+6. README_EMAIL_AUTOMATION.md
+   → Master index and reference document
+   → Links to all other files
+   → Complete overview of entire investigation
+
+================================================================================
+SQL TESTING SCRIPTS
+================================================================================
+
+7. INVESTIGATE_EMAIL_AUTOMATION.sql
+   → Diagnostic script to check what's deployed
+   → Run this FIRST in Supabase SQL Editor
+   → Shows ✅ what works and ❌ what's missing
+
+8. TEST_EMAIL_AUTOMATION.sql
+   → Interactive testing script
+   → Creates test questions on test listing
+   → Triggers admin notifications
+   → Run this AFTER fixing to verify
+
+9. CLEANUP_TEST_DATA.sql
+   → Removes all test data created during testing
+   → Run this AFTER testing is complete
+   → Cleans up test questions, notifications, logs
+
+================================================================================
+UPDATED CODE FILES
+================================================================================
+
+10. supabase/functions/send-admin-notifications/index.ts
+    → Updated admin email from frothmonkey@myyahoo.com
+    → Changed to: frothmonkeyca@gmail.com
+    → Line 13
+    → NEEDS REDEPLOYMENT: npx supabase functions deploy send-admin-notifications --no-verify-jwt
+
+================================================================================
+QUICK WORKFLOW
+================================================================================
+
+Step 1: Read START_HERE.md (2 minutes)
+
+Step 2: Run INVESTIGATE_EMAIL_AUTOMATION.sql in Supabase (2 minutes)
+        → This shows you what's deployed and what's missing
+
+Step 3: Deploy edge functions (5 minutes)
+        Terminal:
+        cd "/Users/geoffreywaterson/Documents/Cursor - Auction Marketplace"
+        npx supabase functions deploy send-notification-emails
+        npx supabase functions deploy send-admin-notifications --no-verify-jwt
+
+Step 4: Configure webhooks in Supabase Dashboard (10 minutes)
+        → See WEBHOOK_CONFIGURATION_GUIDE.md for detailed steps
+        → This is the critical missing piece!
+
+Step 5: Run TEST_EMAIL_AUTOMATION.sql in Supabase (2 minutes)
+        → Verify emails are sent
+
+Step 6: Check Resend dashboard (1 minute)
+        → https://resend.com/emails
+        → Should see 3 test emails
+
+Step 7: Run CLEANUP_TEST_DATA.sql in Supabase (30 seconds)
+        → Remove test data
+
+TOTAL TIME: ~20 minutes
+
+================================================================================
+MOST IMPORTANT THING TO KNOW
+================================================================================
+
+The issue is almost certainly MISSING DATABASE WEBHOOKS.
+
+Your migrations are probably applied, your code is correct, but webhooks
+need to be configured manually in Supabase Dashboard.
+
+Without webhooks:
+  User asks question → Database creates notification → STOPS (no email sent)
+
+With webhooks:
+  User asks question → Database creates notification → Webhook triggers →
+  Edge function runs → Email sent ✅
+
+Webhooks are configured in: Supabase Dashboard → Database → Webhooks
+
+See WEBHOOK_CONFIGURATION_GUIDE.md for detailed instructions.
+
+================================================================================
+VERIFICATION CHECKLIST
+================================================================================
+
+After fixing, you should have:
+☐ 3 webhooks configured in Supabase
+☐ 2 edge functions deployed
+☐ RESEND_API_KEY secret set
+☐ Test emails sent successfully
+☐ Emails appear in Resend dashboard
+☐ Admin email is frothmonkeyca@gmail.com
+
+For real-world verification:
+☐ Ask a question on a listing → Seller receives email
+☐ Answer a question → User receives email
+☐ Create new user account → frothmonkeyca@gmail.com receives email
+
+================================================================================
+TEST LISTING
+================================================================================
+
+ID: 3ba8cbf9-70ea-4adc-981d-758a8082cd42
+
+Use this for testing:
+- Safe to create test questions
+- Won't show test data on website
+- Easy to clean up afterwards
+
+================================================================================
+NEED HELP?
+================================================================================
+
+If stuck at any step:
+
+1. Check which file covers your issue:
+   - General overview → START_HERE.md
+   - Webhook help → WEBHOOK_CONFIGURATION_GUIDE.md
+   - Deep troubleshooting → EMAIL_AUTOMATION_ACTION_PLAN.md
+   - Understanding the issue → EMAIL_AUTOMATION_SUMMARY.md
+
+2. Check logs:
+   - Webhook logs: Supabase → Database → Webhooks → Click webhook → Logs
+   - Function logs: Supabase → Edge Functions → Click function → Logs
+   - Email logs: https://resend.com/emails
+
+3. Re-run investigation:
+   - Run INVESTIGATE_EMAIL_AUTOMATION.sql again
+   - Look for any ❌ markers
+   - Fix what's missing
+
+================================================================================
+EXPECTED OUTCOME
+================================================================================
+
+After following this guide:
+✅ Question emails work automatically
+✅ Answer emails work automatically  
+✅ New user emails work automatically
+✅ All emails go to correct addresses
+✅ Admin email is frothmonkeyca@gmail.com
+✅ All emails logged in Resend
+✅ No more missed notifications
+
+================================================================================
+WHERE TO START
+================================================================================
+
+👉 Open START_HERE.md right now and follow the 4 steps.
+
+That's it! Everything you need is in these files.
+
+Good luck! 🚀
+
+================================================================================
+
