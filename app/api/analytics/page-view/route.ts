@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getUser } from '@/lib/auth'
 
+// HEAD handler for analytics availability check
+export async function HEAD() {
+  return new NextResponse(null, { status: 200 })
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { path, utm_source, utm_medium, utm_campaign, utm_term, utm_content, referrer } = await request.json()

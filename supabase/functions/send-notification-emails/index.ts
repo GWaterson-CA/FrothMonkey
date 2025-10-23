@@ -656,7 +656,7 @@ serve(async (req) => {
             <div class="container">
               <div class="header">
                 <img src="https://frothmonkey.com/FrothMonkey%20Logo%20Blue.png" alt="FrothMonkey" class="logo" />
-                <h1>❓ New Question on Your Listing</h1>
+                <h1>❓ New Question on Your Listing ❓</h1>
               </div>
               <div class="content">
                 <p>Hi ${recipientName},</p>
@@ -727,7 +727,7 @@ serve(async (req) => {
             <div class="container">
               <div class="header">
                 <img src="https://frothmonkey.com/FrothMonkey%20Logo%20Blue.png" alt="FrothMonkey" class="logo" />
-                <h1>✅ Your Question Was Answered</h1>
+                <h1>✅ Your Question Was Answered ✅</h1>
               </div>
               <div class="content">
                 <p>Hi ${recipientName},</p>
