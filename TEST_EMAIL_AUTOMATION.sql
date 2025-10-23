@@ -103,11 +103,15 @@ SELECT 'Answering the test question...' as status;
 -- Update the question with an answer (triggers question_answered notification)
 UPDATE auction_questions
 SET answer = 'TEST ANSWER: Yes, it includes the original packaging and all accessories. (This is a test answer for email automation)'
-WHERE listing_id = '3ba8cbf9-70ea-4adc-981d-758a8082cd42'
-  AND answer IS NULL
-  AND question LIKE '%TEST QUESTION%'
-ORDER BY created_at DESC
-LIMIT 1
+WHERE id = (
+    SELECT id 
+    FROM auction_questions
+    WHERE listing_id = '3ba8cbf9-70ea-4adc-981d-758a8082cd42'
+      AND answer IS NULL
+      AND question LIKE '%TEST QUESTION%'
+    ORDER BY created_at DESC
+    LIMIT 1
+)
 RETURNING 
     id as question_id,
     '✅ Test answer added' as status,
@@ -175,7 +179,6 @@ SELECT
     id,
     username,
     full_name,
-    email,
     created_at
 FROM profiles
 ORDER BY created_at DESC

@@ -26,6 +26,11 @@ content_path = "./supabase/templates/confirmation.html"
 # Sender configuration
 [auth.email.smtp]
 sender_name = "FrothMonkey"
+host = "smtp.resend.com"
+port = 587
+user = "resend"
+pass = "placeholder"
+admin_email = "frothmonkeyca@gmail.com"
 
 [auth.sms]
 enable_signup = false
@@ -55,8 +60,8 @@ enabled = false
 [auth.external.google]
 enabled = true
 # For local development, you'll need to add your Google OAuth credentials:
-# client_id = "your-google-client-id"
-# secret = "your-google-client-secret"
+client_id = "placeholder-for-deployment"
+secret = "placeholder-for-deployment"
 # Note: Production credentials are configured in the Supabase dashboard
 
 [auth.external.keycloak]
