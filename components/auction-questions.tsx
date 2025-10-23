@@ -214,7 +214,7 @@ export function AuctionQuestions({ listingId, isOwner, isLoggedIn }: AuctionQues
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <p className="text-sm font-medium">
-                      {question.profiles?.full_name || question.profiles?.username || 'Anonymous'}
+                      {question.profiles?.username || 'Anonymous'}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {question.created_at && formatDateTime(question.created_at)}
@@ -291,7 +291,7 @@ export function AuctionQuestions({ listingId, isOwner, isLoggedIn }: AuctionQues
                 <div className="mb-3">
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-sm font-medium">
-                      {question.profiles?.full_name || question.profiles?.username || 'Anonymous'}
+                      {question.profiles?.username || 'Anonymous'}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {question.created_at && formatDateTime(question.created_at)}
