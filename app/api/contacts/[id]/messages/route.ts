@@ -89,7 +89,7 @@ export async function POST(
     // Verify user is part of this contact exchange and it's approved
     const { data: contact } = await supabase
       .from('auction_contacts')
-      .select('seller_id, buyer_id, status')
+      .select('seller_id, buyer_id, status, listing_id')
       .eq('id', params.id)
       .single()
 
@@ -147,7 +147,7 @@ export async function POST(
       p_type: 'new_message',
       p_title: 'New Message',
       p_message: `${profile.username || profile.full_name || 'Someone'} sent you a message`,
-      p_listing_id: null,
+      p_listing_id: contact.listing_id,
       p_related_user_id: profile.id,
       p_metadata: { contact_id: params.id }
     })

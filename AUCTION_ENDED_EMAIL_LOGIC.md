@@ -1,0 +1,84 @@
+-- Email Notification Logic for Auction Ended Emails
+-- ===================================================
+-- 
+-- FLOW DIAGRAM:
+-- 
+-- 1. Auction Ends (end_time passes OR manual update)
+--    ↓
+-- 2. finalize_auctions() function OR manual UPDATE sets status = 'ended'/'sold'
+--    ↓
+-- 3. Trigger: trigger_notify_auction_ended fires (ON UPDATE OF status)
+--    ↓
+-- 4. Function: notify_auction_ended() creates notification(s) in notifications table
+--    ↓
+-- 5. Database Webhook fires (on INSERT to notifications table)
+--    ↓
+-- 6. Edge Function: send-notification-emails receives webhook
+--    ↓
+-- 7. Edge Function checks user preferences and sends email via Resend
+--
+-- ===================================================
+-- CRITICAL REQUIREMENTS:
+-- ===================================================
+--
+-- ✅ TRIGGER EXISTS: trigger_notify_auction_ended
+--    - Fires: AFTER UPDATE OF status ON listings
+--    - Condition: OLD.status != NEW.status AND NEW.status IN ('ended', 'sold')
+--
+-- ✅ FUNCTION EXISTS: notify_auction_ended()
+--    - Creates notification with type: 'listing_ended_seller' (always)
+--    - Creates notification with type: 'auction_won' (if status = 'sold' AND has bids)
+--
+-- ⚠️ WEBHOOK REQUIRED: Database webhook on notifications table
+--    - Table: notifications
+--    - Event: INSERT
+--    - Edge Function: send-notification-emails
+--
+-- ⚠️ EDGE FUNCTION: send-notification-emails must be deployed
+--    - Handles: 'listing_ended_seller' and 'auction_won' types
+--    - Sends via Resend API
+--
+-- ===================================================
+-- POTENTIAL ISSUES:
+-- ===================================================
+--
+-- ISSUE 1: Status never changed from 'live' to 'ended'
+--   - If listing.status is still 'live' but end_time passed, trigger won't fire
+--   - Solution: Ensure finalize_auctions() function is running OR manually update status
+--
+-- ISSUE 2: Trigger condition not met
+--   - Trigger requires: OLD.status != NEW.status
+--   - If status was already 'ended', UPDATE won't trigger notification
+--   - Solution: Check listing status history
+--
+-- ISSUE 3: Notification created but webhook not configured
+--   - Notifications exist in database but no emails sent
+--   - Solution: Configure webhook in Supabase Dashboard
+--
+-- ISSUE 4: Webhook configured but edge function not deployed
+--   - Webhook fires but edge function doesn't exist or errors
+--   - Solution: Deploy edge function and check logs
+--
+-- ISSUE 5: User has email notifications disabled
+--   - Notification created, webhook fires, but edge function skips email
+--   - Solution: Check user's notification_preferences
+--
+-- ISSUE 6: Edge function errors or Resend API fails
+--   - Edge function receives webhook but email fails to send
+--   - Solution: Check edge function logs in Supabase Dashboard
+--
+-- ===================================================
+-- CHECKLIST FOR THIS LISTING:
+-- ===================================================
+--
+-- Run CHECK_LISTING_EMAIL_NOTIFICATION.sql to verify:
+--
+-- [ ] 1. Listing status is 'ended' or 'sold'
+-- [ ] 2. Status actually changed (not already ended)
+-- [ ] 3. Notifications exist in notifications table
+-- [ ] 4. Trigger exists and is enabled
+-- [ ] 5. Owner has email notifications enabled
+-- [ ] 6. Webhook is configured (manual check in Dashboard)
+-- [ ] 7. Edge function is deployed (check Supabase Dashboard)
+-- [ ] 8. Edge function logs show attempts (check Supabase Dashboard > Edge Functions > Logs)
+

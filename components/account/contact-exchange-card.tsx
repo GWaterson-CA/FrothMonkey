@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -56,21 +57,23 @@ export function ContactExchangeCard({
   role,
   onUpdate 
 }: ContactExchangeCardProps) {
+  const router = useRouter()
   const [showMessaging, setShowMessaging] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
+  const [localContact, setLocalContact] = useState(contact)
 
-  const otherParty = role === 'seller' ? contact.buyer : contact.seller
+  const otherParty = role === 'seller' ? localContact.buyer : localContact.seller
   const canSeeContact = role === 'seller' 
-    ? contact.seller_contact_visible 
-    : contact.buyer_contact_visible
-  const isApproved = ['approved', 'auto_approved'].includes(contact.status)
-  const isPending = contact.status === 'pending_approval'
-  const isDeclined = contact.status === 'declined'
+    ? localContact.seller_contact_visible 
+    : localContact.buyer_contact_visible
+  const isApproved = ['approved', 'auto_approved'].includes(localContact.status)
+  const isPending = localContact.status === 'pending_approval'
+  const isDeclined = localContact.status === 'declined'
 
   const handleApprove = async () => {
     setIsUpdating(true)
     try {
-      const response = await fetch(`/api/contacts/${contact.id}`, {
+      const response = await fetch(`/api/contacts/${localContact.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'approve' })
@@ -80,7 +83,17 @@ export function ContactExchangeCard({
         throw new Error('Failed to approve contact exchange')
       }
 
+      // Update local state
+      setLocalContact(prev => ({
+        ...prev,
+        status: 'approved' as const,
+        seller_contact_visible: true,
+        buyer_contact_visible: true,
+        approved_at: new Date().toISOString()
+      }))
+
       onUpdate?.()
+      router.refresh()
     } catch (error) {
       console.error('Error approving contact:', error)
       alert('Failed to approve contact exchange')
@@ -96,7 +109,7 @@ export function ContactExchangeCard({
 
     setIsUpdating(true)
     try {
-      const response = await fetch(`/api/contacts/${contact.id}`, {
+      const response = await fetch(`/api/contacts/${localContact.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'decline' })
@@ -106,7 +119,15 @@ export function ContactExchangeCard({
         throw new Error('Failed to decline contact exchange')
       }
 
+      // Update local state
+      setLocalContact(prev => ({
+        ...prev,
+        status: 'declined' as const,
+        declined_at: new Date().toISOString()
+      }))
+
       onUpdate?.()
+      router.refresh()
     } catch (error) {
       console.error('Error declining contact:', error)
       alert('Failed to decline contact exchange')
@@ -123,10 +144,10 @@ export function ContactExchangeCard({
             <div className="flex items-center gap-2 mb-2">
               <CardTitle className="text-lg">
                 <Link 
-                  href={`/listing/${contact.listing.id}`}
+                  href={`/listing/${localContact.listing.id}`}
                   className="hover:underline"
                 >
-                  {contact.listing.title}
+                  {localContact.listing.title}
                 </Link>
               </CardTitle>
               {isApproved && (
@@ -147,14 +168,14 @@ export function ContactExchangeCard({
                   Declined
                 </Badge>
               )}
-              {!contact.reserve_met && (
+              {!localContact.reserve_met && (
                 <Badge variant="outline">Reserve Not Met</Badge>
               )}
             </div>
             <div className="text-sm text-muted-foreground space-y-1">
-              <div>Final Price: {formatCurrency(contact.final_price)}</div>
-              <div>Ended: {formatDateTime(contact.listing.end_time)}</div>
-              <div>Location: {contact.listing.location}</div>
+              <div>Final Price: {formatCurrency(localContact.final_price)}</div>
+              <div>Ended: {formatDateTime(localContact.listing.end_time)}</div>
+              <div>Location: {localContact.listing.location}</div>
             </div>
           </div>
         </div>
@@ -256,7 +277,7 @@ export function ContactExchangeCard({
             {showMessaging && (
               <div className="mt-4">
                 <ContactMessaging 
-                  contactId={contact.id}
+                  contactId={localContact.id}
                   currentUserId={currentUserId}
                   otherParty={otherParty}
                 />

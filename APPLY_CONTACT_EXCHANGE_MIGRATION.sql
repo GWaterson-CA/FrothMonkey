@@ -1,0 +1,15 @@
+-- APPLY CONTACT EXCHANGE MIGRATION FIRST
+-- This migration creates the auction_contacts and auction_messages tables
+-- 
+-- Option 1: Via Supabase Dashboard (EASIEST)
+-- 1. Go to Supabase Dashboard → SQL Editor
+-- 2. Open file: supabase/migrations/026_auction_contact_exchange.sql
+-- 3. Copy ALL contents
+-- 4. Paste into SQL Editor
+-- 5. Click "Run"
+--
+-- Option 2: Via Supabase CLI
+-- Run: supabase db push
+--
+-- After applying the migration, then run CHECK_AND_CREATE_CONTACT_EXCHANGE.sql
+

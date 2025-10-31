@@ -141,7 +141,8 @@ serve(async (req) => {
       'time_warning_24h',
       'time_warning_48h',
       'question_received',
-      'question_answered'
+      'question_answered',
+      'new_message'
     ]
     
     if (!emailableTypes.includes(notification.type)) {
@@ -205,7 +206,13 @@ serve(async (req) => {
       )
     }
 
-    console.log(`Sending email to: ${user.email}`)
+    if (notification.type === 'new_message' && preferences.new_message === false) {
+      console.log('User has new message notifications disabled')
+      return new Response(
+        JSON.stringify({ success: true, skipped: true, reason: 'New message notifications disabled' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     // Get listing data if listing_id is present
     let listingData = null
@@ -221,11 +228,10 @@ serve(async (req) => {
 
     const recipientName = profile?.full_name || profile?.username || 'User'
     const listingTitle = listingData?.title || 'Unknown Listing'
-    const listingUrl = `${appUrl}/listing/${notification.listing_id}`
+    const listingUrl = listingData ? `${appUrl}/listing/${notification.listing_id}` : `${appUrl}/account`
     
     // Get email-safe image URL (handles Next.js image optimizer URLs)
-    const listingImage = getEmailSafeImageUrl(listingData?.cover_image_url, appUrl, supabaseUrl)
-    console.log(`✅ Final email image URL: ${listingImage}`)
+    const listingImage = listingData ? getEmailSafeImageUrl(listingData?.cover_image_url, appUrl, supabaseUrl) : ''
 
     // Build email content based on notification type
     let subject = ''
@@ -479,6 +485,21 @@ serve(async (req) => {
       const finalBid = notification.metadata?.final_bid || listingData?.current_price || 0
       const sellerName = notification.metadata?.seller_name || 'the seller'
 
+      // Get contact exchange ID if available
+      let contactExchangeUrl = listingUrl
+      if (notification.listing_id) {
+        const { data: contactExchange } = await supabase
+          .from('auction_contacts')
+          .select('id, buyer_id')
+          .eq('listing_id', notification.listing_id)
+          .eq('buyer_id', notification.user_id)
+          .single()
+        
+        if (contactExchange) {
+          contactExchangeUrl = `${appUrl}/account/bids?tab=contacts`
+        }
+      }
+
       subject = `🎉 Congratulations! You won "${listingTitle}"`
       htmlContent = `
         <!DOCTYPE html>
@@ -528,7 +549,7 @@ serve(async (req) => {
                   </div>
                 </div>
                 <div style="text-align: center;">
-                  <a href="${listingUrl}" class="button">Contact Seller</a>
+                  <a href="${contactExchangeUrl}" class="button">View Messages</a>
                 </div>
                 <div class="next-steps">
                   <strong>Next Steps:</strong> Connect with the seller through our messaging system to arrange payment and delivery. Remember to leave a review after the transaction!
@@ -547,6 +568,21 @@ serve(async (req) => {
       const buyerName = notification.metadata?.buyer_name || 'the buyer'
       const reserveMet = notification.metadata?.reserve_met || false
       const hadBids = notification.metadata?.had_bids || false
+
+      // Get contact exchange ID if available
+      let contactExchangeUrl = listingUrl
+      if (notification.listing_id && hadBids) {
+        const { data: contactExchange } = await supabase
+          .from('auction_contacts')
+          .select('id, seller_id')
+          .eq('listing_id', notification.listing_id)
+          .eq('seller_id', notification.user_id)
+          .single()
+        
+        if (contactExchange) {
+          contactExchangeUrl = `${appUrl}/account/listings?tab=contacts`
+        }
+      }
 
       subject = reserveMet ? `🎉 Your auction sold: "${listingTitle}"` : `📊 Your auction ended: "${listingTitle}"`
       htmlContent = `
@@ -609,7 +645,11 @@ serve(async (req) => {
                 </div>
                 ` : ''}
                 <div style="text-align: center;">
-                  <a href="${listingUrl}" class="button">View Listing Details</a>
+                  ${hadBids && reserveMet ? `
+                    <a href="${contactExchangeUrl}" class="button">View Messages</a>
+                  ` : `
+                    <a href="${listingUrl}" class="button">View Listing Details</a>
+                  `}
                 </div>
                 ${reserveMet ? `
                 <div class="next-steps">
@@ -757,6 +797,142 @@ serve(async (req) => {
                 </div>
                 <div class="tip">
                   <strong>💡 Interested?</strong> Now that your question has been answered, you can place a bid if you're interested!
+                </div>
+              </div>
+              <div class="footer">
+                <p>You're receiving this because you have email notifications enabled.</p>
+                <p><a href="${appUrl}/account/settings">Manage your notification preferences</a></p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `
+    } else if (notification.type === 'new_message') {
+      // Get sender name from related_user_id
+      const senderId = notification.related_user_id
+      let senderName = 'Someone'
+      let contactId = notification.metadata?.contact_id
+      
+      if (senderId) {
+        const { data: senderProfile } = await supabase
+          .from('profiles')
+          .select('username, full_name')
+          .eq('id', senderId)
+          .single()
+        
+        senderName = senderProfile?.full_name || senderProfile?.username || 'Someone'
+      }
+      
+      // Get contact exchange details to find the listing
+      let contactExchangeData = null
+      if (contactId) {
+        const { data: contactExchange } = await supabase
+          .from('auction_contacts')
+          .select('listing_id, seller_id, buyer_id')
+          .eq('id', contactId)
+          .single()
+        
+        contactExchangeData = contactExchange
+        
+        // Update listing_id if we found it
+        if (contactExchangeData?.listing_id && !notification.listing_id) {
+          notification.listing_id = contactExchangeData.listing_id
+        }
+      }
+      
+      // Get listing data if available
+      if (notification.listing_id) {
+        const { data } = await supabase
+          .from('listings')
+          .select('id, title, cover_image_url')
+          .eq('id', notification.listing_id)
+          .single()
+        
+        if (data) {
+          listingData = data
+        }
+      }
+      
+      // Get the most recent message preview (optional - first 100 chars)
+      let messagePreview = ''
+      if (contactId) {
+        const { data: recentMessage } = await supabase
+          .from('auction_messages')
+          .select('message')
+          .eq('contact_id', contactId)
+          .eq('sender_id', senderId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single()
+        
+        if (recentMessage?.message) {
+          messagePreview = recentMessage.message.length > 100 
+            ? recentMessage.message.substring(0, 100) + '...'
+            : recentMessage.message
+        }
+      }
+      
+      // Determine the correct URL based on user role
+      let contactUrl = listingData ? `${appUrl}/listing/${notification.listing_id}` : `${appUrl}/account`
+      if (contactId && contactExchangeData) {
+        // User is the recipient, check if they're seller or buyer
+        if (notification.user_id === contactExchangeData.seller_id) {
+          contactUrl = `${appUrl}/account/listings?tab=contacts`
+        } else if (notification.user_id === contactExchangeData.buyer_id) {
+          contactUrl = `${appUrl}/account/bids?tab=contacts`
+        }
+      }
+
+      subject = `💬 New message from ${senderName}${listingData ? ` about "${listingData.title}"` : ''}`
+      htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background-color: #3b82f6; color: white; padding: 20px; text-align: center; }
+              .logo { max-width: 150px; height: auto; margin-bottom: 15px; }
+              .content { padding: 20px; background-color: #f9fafb; }
+              ${listingData ? `
+              .listing-preview { background-color: white; padding: 20px; margin: 20px 0; border-radius: 8px; text-align: center; }
+              .listing-image { width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto; }
+              .listing-title { font-size: 20px; font-weight: bold; color: #1a1a1a; margin: 0; }
+              ` : ''}
+              .details { background-color: white; padding: 15px; margin: 20px 0; border-radius: 5px; }
+              .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e7eb; }
+              .message-box { background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6; }
+              .message-text { color: #333; margin: 0; font-size: 15px; line-height: 1.6; }
+              .button { display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+              .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 14px; }
+              .tip { background-color: #eff6ff; padding: 15px; border-left: 4px solid #3b82f6; margin: 20px 0; border-radius: 4px; font-size: 14px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <img src="https://frothmonkey.com/FrothMonkey%20Logo%20Blue.png" alt="FrothMonkey" class="logo" />
+                <h1>💬 New Message</h1>
+              </div>
+              <div class="content">
+                <p>Hi ${recipientName},</p>
+                <p>${senderName} sent you a message${listingData ? ` about "${listingData.title}"` : ''}.</p>
+                ${listingData ? `
+                <div class="listing-preview">
+                  <img src="${getEmailSafeImageUrl(listingData.cover_image_url, appUrl, supabaseUrl)}" alt="${listingData.title}" class="listing-image" />
+                  <h2 class="listing-title">${listingData.title}</h2>
+                </div>
+                ` : ''}
+                ${messagePreview ? `
+                <div class="message-box">
+                  <p class="message-text">"${messagePreview}"</p>
+                </div>
+                ` : ''}
+                <div style="text-align: center;">
+                  <a href="${contactUrl}" class="button">View Message</a>
+                </div>
+                <div class="tip">
+                  <strong>💡 Tip:</strong> You can reply directly through the messaging system to arrange delivery, payment, or pickup details.
                 </div>
               </div>
               <div class="footer">

@@ -99,11 +99,39 @@ export function NotificationsDropdown() {
     }
   }
 
-  const handleNotificationClick = (notification: any) => {
+  const handleNotificationClick = async (notification: any) => {
     if (!notification.read_at) {
       markAsRead(notification.id)
     }
     
+    // Handle "New Message" notifications
+    if (notification.type === 'new_message' && notification.metadata?.contact_id) {
+      setIsOpen(false)
+      try {
+        // Fetch the contact exchange to determine if user is seller or buyer
+        const response = await fetch(`/api/contacts/${notification.metadata.contact_id}`)
+        if (response.ok) {
+          const contact = await response.json()
+          const { data: { user } } = await supabase.auth.getUser()
+          
+          if (user) {
+            // Determine user's role and navigate to the appropriate page
+            if (contact.seller_id === user.id) {
+              router.push('/account/listings?tab=contacts')
+            } else if (contact.buyer_id === user.id) {
+              router.push('/account/bids?tab=contacts')
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching contact exchange:', error)
+        // Fallback: navigate to listings page
+        router.push('/account/listings?tab=contacts')
+      }
+      return
+    }
+    
+    // Handle listing-based notifications
     if (notification.listing_id) {
       setIsOpen(false)
       router.push(`/listing/${notification.listing_id}`)
