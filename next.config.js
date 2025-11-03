@@ -6,6 +6,7 @@ const nextConfig = {
     }
   },
   images: {
+    unoptimized: true,  // Disable Vercel image optimization to avoid exceeding limits
     remotePatterns: [
       {
         protocol: 'https',
