@@ -35,7 +35,7 @@ const listingSchema = z.object({
   ),
   startTime: z.string(),
   endTime: z.string(),
-  antiSnipingSeconds: z.number().min(0).max(300).default(30),
+  antiSnipingSeconds: z.number().min(0).max(300).default(180),
 })
 
 type ListingFormData = z.infer<typeof listingSchema>
@@ -70,7 +70,7 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
     defaultValues: {
       startTime: now.toISOString().slice(0, 16),
       endTime: defaultEndTime.toISOString().slice(0, 16),
-      antiSnipingSeconds: 30,
+      antiSnipingSeconds: 180,
       condition: 'good',
       location: 'Squamish, BC',
     },
@@ -155,14 +155,14 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
     setIsDraft(saveAsDraft)
 
     try {
-      // Validate times
-      const startTime = new Date(data.startTime)
+      // Validate end time (start time will be set to now when publishing)
       const endTime = new Date(data.endTime)
+      const now = new Date()
       
-      if (endTime <= startTime) {
+      if (!saveAsDraft && endTime <= now) {
         toast({
-          title: 'Invalid Times',
-          description: 'End time must be after start time',
+          title: 'Invalid End Time',
+          description: 'End time must be in the future',
           variant: 'destructive',
         })
         setIsLoading(false)
@@ -221,7 +221,7 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
               current_price: data.startPrice, // Set current_price to match start_price
               reserve_price: data.reservePrice || null,
               buy_now_price: data.buyNowPrice || null,
-              start_time: data.startTime,
+              start_time: saveAsDraft ? data.startTime : new Date().toISOString(),
               end_time: data.endTime,
               anti_sniping_seconds: data.antiSnipingSeconds,
               status: saveAsDraft ? 'draft' : 'live',
@@ -242,7 +242,7 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
               current_price: data.startPrice, // Set current_price to match start_price
               reserve_price: data.reservePrice || null,
               buy_now_price: data.buyNowPrice || null,
-              start_time: data.startTime,
+              start_time: saveAsDraft ? data.startTime : new Date().toISOString(),
               end_time: data.endTime,
               anti_sniping_seconds: data.antiSnipingSeconds,
               owner_id: userId,
@@ -540,51 +540,31 @@ export function CreateListingForm({ categories, userId }: CreateListingFormProps
           <CardTitle>Auction Timing</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="startTime">Start Time *</Label>
-              <Input
-                id="startTime"
-                type="datetime-local"
-                {...register('startTime')}
-                disabled={isLoading}
-              />
-              {errors.startTime && (
-                <p className="text-sm text-destructive">{errors.startTime.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="endTime">End Time *</Label>
-              <Input
-                id="endTime"
-                type="datetime-local"
-                {...register('endTime')}
-                disabled={isLoading}
-              />
-              {errors.endTime && (
-                <p className="text-sm text-destructive">{errors.endTime.message}</p>
-              )}
-            </div>
-          </div>
-
           <div className="space-y-2">
-            <Label htmlFor="antiSnipingSeconds">Anti-Sniping Protection (seconds)</Label>
+            <Label htmlFor="endTime">End Time & Date *</Label>
             <Input
-              id="antiSnipingSeconds"
-              type="number"
-              min="0"
-              max="300"
-              placeholder="30"
-              {...register('antiSnipingSeconds', { valueAsNumber: true })}
+              id="endTime"
+              type="datetime-local"
+              {...register('endTime')}
               disabled={isLoading}
             />
             <p className="text-xs text-muted-foreground">
-              Extend auction by 2 minutes when bids are placed in the final seconds (0-300 seconds)
+              Your auction will start immediately when you publish and end at the time specified above.
             </p>
-            {errors.antiSnipingSeconds && (
-              <p className="text-sm text-destructive">{errors.antiSnipingSeconds.message}</p>
+            {errors.endTime && (
+              <p className="text-sm text-destructive">{errors.endTime.message}</p>
             )}
+          </div>
+          
+          <div className="bg-muted/50 p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-sm font-medium">Automated Settings</span>
+            </div>
+            <div className="text-sm text-muted-foreground space-y-1">
+              <p>• <strong>Start Time:</strong> Auction begins immediately when published</p>
+              <p>• <strong>Anti-Sniping Protection:</strong> 3 minutes (automatically extends auction if bids placed in final moments)</p>
+            </div>
           </div>
         </CardContent>
       </Card>
